@@ -104,7 +104,6 @@
             </transition>
           </div>
         </router-view>
-        <BottomInfo />
         <setting />
         <CommandMenu ref="command"/>
       </el-main>

@@ -19,7 +19,7 @@
         <el-table-column align="left" label="昵称" min-width="150" prop="nickName" />
         <el-table-column align="left" label="手机号" min-width="180" prop="phone" />
         <el-table-column align="left" label="邮箱" min-width="180" prop="email" />
-        <el-table-column align="left" label="用户角色" min-width="200">
+        <el-table-column align="left" label="用户角色" min-width="200" >
           <template #default="scope">
             <el-cascader
               v-model="scope.row.authorityIds"
@@ -142,7 +142,7 @@
 
 <script>
 export default {
-  name: 'User',
+  name:'User'
 }
 </script>
 
@@ -161,7 +161,7 @@ import ChooseImg from '@/components/chooseImg/index.vue'
 import WarningBar from '@/components/warningBar/warningBar.vue'
 import { setUserInfo, resetPassword } from '@/api/user.js'
 
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, ref, watch} from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 const path = ref(import.meta.env.VITE_BASE_API + '/')
 // 初始化相关
