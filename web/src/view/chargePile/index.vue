@@ -8,8 +8,8 @@
       width="180"
       column-key="ID"
     />
-    <el-table-column prop="waitNum" label="排队车辆数量" width="120" />
-    <el-table-column prop="chargeType" label="充电类型" width="120" />
+    <el-table-column prop="waiting_num" label="排队车辆数量" width="120" />
+    <el-table-column prop="type" label="充电类型" width="120" />
     <el-table-column
       prop="state"
       label="工作状态"
@@ -35,16 +35,22 @@
 </template>
 
 <script lang="ts" setup>
+
+import { getChargePileList } from '../../api/chargePile.js'
+
 import type {TableColumnCtx} from 'element-plus'
+import {ref} from "vue";
 
 interface ChargePile {
   ID: number
-  waitNum: number
-  chargeType: string
+  createAt : string
+  updateAt: string
+  deletedAt: string
+  waitingNum: number
+  type: string
   state: string
   power: string
   location: string
-  algoType: string
 }
 
 const workState = {
@@ -70,60 +76,13 @@ const filterHandler = (
   return row[property] === value
 }
 
-const tableData: ChargePile[] = [
-  {
-    ID: 1,
-    waitNum: 21,
-    chargeType: chargeType.fast,
-    state: workState.work,
-    power: '1231w',
-    location:'教三后',
-    algoType:'先来先服务'
-  },
-  {
-    ID: 2,
-    waitNum: 21,
-    chargeType: chargeType.fast,
-    state: workState.work,
-    power: '1231w',
-    location:'教三后',
-    algoType:'先来先服务'
-  },
-  {
-    ID: 3,
-    waitNum: 21,
-    chargeType: chargeType.fast,
-    state: workState.work,
-    power: '1231w',
-    location:'教三后',
-    algoType:'先来先服务'
-  },
-  {
-    ID: 4,
-    waitNum: 21,
-    chargeType: chargeType.fast,
-    state: workState.work,
-    power: '1231w',
-    location:'教三后',
-    algoType:'先来先服务'
-  },
-  {
-    ID: 5,
-    waitNum: 21,
-    chargeType: chargeType.fast,
-    state: workState.work,
-    power: '1231w',
-    location:'教三后',
-    algoType:'先来先服务'
-  },
-  {
-    ID: 6,
-    waitNum: 21,
-    chargeType: chargeType.fast,
-    state: workState.work,
-    power: '1231w',
-    location:'教三后',
-    algoType:'先来先服务'
-  },
-]
+const tableData = ref([])
+
+const getTableData = async() => {
+  const table = await getChargePileList()
+  tableData.value = table.data.list
+}
+
+getTableData()
+
 </script>

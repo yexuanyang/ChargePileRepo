@@ -6,3 +6,8 @@ type PageResult struct {
 	Page     int         `json:"page"`
 	PageSize int         `json:"pageSize"`
 }
+
+type ListResult struct {
+	List  interface{} `json:"list"`
+	Total int64       `json:"total"`
+}
