@@ -1,6 +1,8 @@
 package system
 
-import "github.com/flipped-aurora/gin-vue-admin/server/service"
+import (
+	"github.com/flipped-aurora/gin-vue-admin/server/service"
+)
 
 type ApiGroup struct {
 	DBApi
@@ -18,6 +20,7 @@ type ApiGroup struct {
 	DictionaryDetailApi
 	AuthorityBtnApi
 	ChatGptApi
+	ChargeApi
 }
 
 var (
@@ -37,4 +40,5 @@ var (
 	dictionaryDetailService = service.ServiceGroupApp.SystemServiceGroup.DictionaryDetailService
 	authorityBtnService     = service.ServiceGroupApp.SystemServiceGroup.AuthorityBtnService
 	chatGptService          = service.ServiceGroupApp.SystemServiceGroup.ChatGptService
+	chargePileService       = service.ServiceGroupApp.SystemServiceGroup.ChargePileService
 )

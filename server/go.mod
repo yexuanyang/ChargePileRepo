@@ -28,7 +28,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.22.5
 	github.com/songzhibin97/gkit v1.2.7
 	github.com/spf13/viper v1.7.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/swaggo/gin-swagger v1.3.0
 	github.com/swaggo/swag v1.16.1
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.19
