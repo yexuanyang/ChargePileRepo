@@ -8,6 +8,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/model/admin"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -58,7 +59,7 @@ func RegisterTables() {
 		system.ChargeStationModel{},
 		system.OrderModel{},
 		system.ReportFormsModel{},
-		system.UserModel{}, admin.ChargePile{},
+		system.UserModel{}, admin.ChargePile{}, user.Users{}, user.Car{}, user.Order{}, admin.ChargeStation{},
 	)
 	if err != nil {
 		global.GVA_LOG.Error("register table failed", zap.Error(err))

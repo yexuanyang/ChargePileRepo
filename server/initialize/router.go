@@ -63,6 +63,18 @@ func Routers() *gin.Engine {
 	{
 		adminRouter := router.RouterGroupApp.Admin
 		adminRouter.InitChargePileRouter(PrivateGroup)
+		adminRouter.InitChargeStationRouter(PrivateGroup)
+	}
+	{
+
+	}
+	{
+		userRouter := router.RouterGroupApp.User
+
+		userRouter.InitUsersRouter(PrivateGroup)
+		userRouter.InitCarRouter(PrivateGroup)
+		userRouter.InitOrderRouter(PrivateGroup)
+
 	}
 
 	global.GVA_LOG.Info("router register success")

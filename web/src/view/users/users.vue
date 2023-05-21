@@ -7,14 +7,6 @@
        —
       <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间"></el-date-picker>
       </el-form-item>
-        <el-form-item label="充电桩类型">
-         <el-input v-model="searchInfo.pileType" placeholder="搜索条件" />
-
-        </el-form-item>
-        <el-form-item label="充电桩站点ID">
-         <el-input v-model="searchInfo.stationId" placeholder="搜索条件" />
-
-        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
           <el-button icon="refresh" @click="onReset">重置</el-button>
@@ -47,19 +39,20 @@
         <el-table-column align="left" label="日期" width="180">
             <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="是否开启" prop="isOpen" width="120">
-            <template #default="scope">{{ formatBoolean(scope.row.isOpen) }}</template>
-        </el-table-column>
-        <el-table-column align="left" label="充电桩类型" prop="pileType" width="120" />
-        <el-table-column align="left" label="充电桩累计充电次数" prop="chargeCount" width="120" />
-        <el-table-column align="left" label="充电站的ID" prop="stationId" width="120" />
-        <el-table-column align="left" label="充电桩累计充电电量" prop="electricity" width="120" />
-         <el-table-column align="left" label="充电时间" width="180">
-            <template #default="scope">{{ formatDate(scope.row.chargeTime) }}</template>
-         </el-table-column>
+        <el-table-column align="left" label="活跃颜色" prop="activeColor" width="120" />
+        <el-table-column align="left" label="基础颜色" prop="baseColor" width="120" />
+        <el-table-column align="left" label="用户邮箱" prop="email" width="120" />
+        <el-table-column align="left" label="用户是否被冻结 1正常 2冻结" prop="enable" width="120" />
+        <el-table-column align="left" label="用户头像" prop="headerImg" width="120" />
+        <el-table-column align="left" label="用户昵称" prop="nickName" width="120" />
+        <el-table-column align="left" label="用户登录密码" prop="password" width="120" />
+        <el-table-column align="left" label="用户手机号" prop="phone" width="120" />
+        <el-table-column align="left" label="用户侧边主题" prop="sideMode" width="120" />
+        <el-table-column align="left" label="用户登录名" prop="username" width="120" />
+        <el-table-column align="left" label="用户UUID" prop="uuid" width="120" />
         <el-table-column align="left" label="按钮组">
             <template #default="scope">
-            <el-button type="primary" link icon="edit" class="table-button" @click="updateChargePileFunc(scope.row)">变更</el-button>
+            <el-button type="primary" link icon="edit" class="table-button" @click="updateUsersFunc(scope.row)">变更</el-button>
             <el-button type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
             </template>
         </el-table-column>
@@ -77,26 +70,39 @@
         </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
-      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="200px">
-        <el-form-item label="是否开启:"  prop="isOpen" >
-          <el-switch v-model="formData.isOpen" active-color="#13ce66" inactive-color="#ff4949" active-text="是" inactive-text="否" clearable ></el-switch>
+      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="80px">
+        <el-form-item label="活跃颜色:"  prop="activeColor" >
+          <el-input v-model="formData.activeColor" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="充电桩类型:"  prop="pileType" >
-            <el-select v-model="formData.pileType" placeholder="请选择" style="width:100%" :clearable="true" >
-               <el-option v-for="item in ['快充','慢充','其他']" :key="item" :label="item" :value="item" />
-            </el-select>
+        <el-form-item label="基础颜色:"  prop="baseColor" >
+          <el-input v-model="formData.baseColor" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="充电桩累计充电次数:"  prop="chargeCount" >
-          <el-input v-model.number="formData.chargeCount" :clearable="true" placeholder="请输入" />
+        <el-form-item label="用户邮箱:"  prop="email" >
+          <el-input v-model="formData.email" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="充电站的ID:"  prop="stationId" >
-          <el-input v-model.number="formData.stationId" :clearable="true" placeholder="请输入" />
+        <el-form-item label="用户是否被冻结 1正常 2冻结:"  prop="enable" >
+          <el-input v-model.number="formData.enable" :clearable="true" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="充电桩累计充电电量:"  prop="electricity" >
-          <el-input-number v-model="formData.electricity"  style="width:100%" :precision="2" :clearable="true"  />
+        <el-form-item label="用户头像:"  prop="headerImg" >
+          <el-input v-model="formData.headerImg" :clearable="true"  placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="充电时间:"  prop="chargeTime" >
-          <el-date-picker v-model="formData.chargeTime" type="date" style="width:100%" placeholder="选择日期" :clearable="true"  />
+        <el-form-item label="用户昵称:"  prop="nickName" >
+          <el-input v-model="formData.nickName" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="用户登录密码:"  prop="password" >
+          <el-input v-model="formData.password" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="用户手机号:"  prop="phone" >
+          <el-input v-model="formData.phone" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="用户侧边主题:"  prop="sideMode" >
+          <el-input v-model="formData.sideMode" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="用户登录名:"  prop="username" >
+          <el-input v-model="formData.username" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="用户UUID:"  prop="uuid" >
+          <el-input v-model="formData.uuid" :clearable="true"  placeholder="请输入" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -111,19 +117,19 @@
 
 <script>
 export default {
-  name: 'ChargePile'
+  name: 'Users'
 }
 </script>
 
 <script setup>
 import {
-  createChargePile,
-  deleteChargePile,
-  deleteChargePileByIds,
-  updateChargePile,
-  findChargePile,
-  getChargePileList
-} from '@/api/chargePile'
+  createUsers,
+  deleteUsers,
+  deleteUsersByIds,
+  updateUsers,
+  findUsers,
+  getUsersList
+} from '@/api/users'
 
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
@@ -132,30 +138,21 @@ import { ref, reactive } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
-        isOpen: false,
-        chargeCount: 0,
-        stationId: 0,
-        electricity: 0,
-        chargeTime: new Date(),
+        activeColor: '',
+        baseColor: '',
+        email: '',
+        enable: 0,
+        headerImg: '',
+        nickName: '',
+        password: '',
+        phone: '',
+        sideMode: '',
+        username: '',
+        uuid: '',
         })
 
 // 验证规则
 const rule = reactive({
-               isOpen : [{
-                   required: true,
-                   message: '',
-                   trigger: ['input','blur'],
-               }],
-               pileType : [{
-                   required: true,
-                   message: '',
-                   trigger: ['input','blur'],
-               }],
-               stationId : [{
-                   required: true,
-                   message: '',
-                   trigger: ['input','blur'],
-               }],
 })
 
 const elFormRef = ref()
@@ -178,9 +175,6 @@ const onReset = () => {
 const onSubmit = () => {
   page.value = 1
   pageSize.value = 10
-  if (searchInfo.value.isOpen === ""){
-      searchInfo.value.isOpen=null
-  }
   getTableData()
 }
 
@@ -198,7 +192,7 @@ const handleCurrentChange = (val) => {
 
 // 查询
 const getTableData = async() => {
-  const table = await getChargePileList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
+  const table = await getUsersList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
   if (table.code === 0) {
     tableData.value = table.data.list
     total.value = table.data.total
@@ -233,7 +227,7 @@ const deleteRow = (row) => {
         cancelButtonText: '取消',
         type: 'warning'
     }).then(() => {
-            deleteChargePileFunc(row)
+            deleteUsersFunc(row)
         })
     }
 
@@ -255,7 +249,7 @@ const onDelete = async() => {
         multipleSelection.value.map(item => {
           ids.push(item.ID)
         })
-      const res = await deleteChargePileByIds({ ids })
+      const res = await deleteUsersByIds({ ids })
       if (res.code === 0) {
         ElMessage({
           type: 'success',
@@ -273,19 +267,19 @@ const onDelete = async() => {
 const type = ref('')
 
 // 更新行
-const updateChargePileFunc = async(row) => {
-    const res = await findChargePile({ ID: row.ID })
+const updateUsersFunc = async(row) => {
+    const res = await findUsers({ ID: row.ID })
     type.value = 'update'
     if (res.code === 0) {
-        formData.value = res.data.rechargePile
+        formData.value = res.data.reuserInfo
         dialogFormVisible.value = true
     }
 }
 
 
 // 删除行
-const deleteChargePileFunc = async (row) => {
-    const res = await deleteChargePile({ ID: row.ID })
+const deleteUsersFunc = async (row) => {
+    const res = await deleteUsers({ ID: row.ID })
     if (res.code === 0) {
         ElMessage({
                 type: 'success',
@@ -311,11 +305,17 @@ const openDialog = () => {
 const closeDialog = () => {
     dialogFormVisible.value = false
     formData.value = {
-        isOpen: false,
-        chargeCount: 0,
-        stationId: 0,
-        electricity: 0,
-        chargeTime: new Date(),
+        activeColor: '',
+        baseColor: '',
+        email: '',
+        enable: 0,
+        headerImg: '',
+        nickName: '',
+        password: '',
+        phone: '',
+        sideMode: '',
+        username: '',
+        uuid: '',
         }
 }
 // 弹窗确定
@@ -325,13 +325,13 @@ const enterDialog = async () => {
               let res
               switch (type.value) {
                 case 'create':
-                  res = await createChargePile(formData.value)
+                  res = await createUsers(formData.value)
                   break
                 case 'update':
-                  res = await updateChargePile(formData.value)
+                  res = await updateUsers(formData.value)
                   break
                 default:
-                  res = await createChargePile(formData.value)
+                  res = await createUsers(formData.value)
                   break
               }
               if (res.code === 0) {

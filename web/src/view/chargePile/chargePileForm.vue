@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="gva-form-box">
-      <el-form :model="formData" ref="elFormRef" label-position="right" :rules="rule" label-width="80px">
+      <el-form :model="formData" ref="elFormRef" label-position="left" :rules="rule" label-width="200px">
         <el-form-item label="是否开启:" prop="isOpen">
           <el-switch v-model="formData.isOpen" active-color="#13ce66" inactive-color="#ff4949" active-text="是" inactive-text="否" clearable ></el-switch>
         </el-form-item>

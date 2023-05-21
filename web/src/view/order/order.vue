@@ -7,12 +7,12 @@
        —
       <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间"></el-date-picker>
       </el-form-item>
-        <el-form-item label="充电桩类型">
-         <el-input v-model="searchInfo.pileType" placeholder="搜索条件" />
+        <el-form-item label="充电的车牌号">
+         <el-input v-model="searchInfo.carId" placeholder="搜索条件" />
 
         </el-form-item>
-        <el-form-item label="充电桩站点ID">
-         <el-input v-model="searchInfo.stationId" placeholder="搜索条件" />
+        <el-form-item label="充电类型">
+         <el-input v-model="searchInfo.chargeType" placeholder="搜索条件" />
 
         </el-form-item>
         <el-form-item>
@@ -47,19 +47,26 @@
         <el-table-column align="left" label="日期" width="180">
             <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="是否开启" prop="isOpen" width="120">
-            <template #default="scope">{{ formatBoolean(scope.row.isOpen) }}</template>
-        </el-table-column>
-        <el-table-column align="left" label="充电桩类型" prop="pileType" width="120" />
-        <el-table-column align="left" label="充电桩累计充电次数" prop="chargeCount" width="120" />
-        <el-table-column align="left" label="充电站的ID" prop="stationId" width="120" />
-        <el-table-column align="left" label="充电桩累计充电电量" prop="electricity" width="120" />
-         <el-table-column align="left" label="充电时间" width="180">
-            <template #default="scope">{{ formatDate(scope.row.chargeTime) }}</template>
+        <el-table-column align="left" label="订单所属的用户Id" prop="userId" width="200" />
+        <el-table-column align="left" label="充电的车牌号" prop="carId" width="120" />
+        <el-table-column align="left" label="充电类型" prop="chargeType" width="120" />
+        <el-table-column align="left" label="充电费用" prop="chargeCost" width="120" />
+        <el-table-column align="left" label="充电度数" prop="kwh" width="120" />
+         <el-table-column align="left" label="充电时长" width="180">
+            <template #default="scope">{{ formatDate(scope.row.time) }}</template>
          </el-table-column>
+        <el-table-column align="left" label="充电桩id" prop="pileId" width="120" />
+        <el-table-column align="left" label="服务费" prop="serviceCost" width="120" />
+         <el-table-column align="left" label="开始充电时间" width="180">
+            <template #default="scope">{{ formatDate(scope.row.startedAt) }}</template>
+         </el-table-column>
+         <el-table-column align="left" label="结束充电时间" width="180">
+            <template #default="scope">{{ formatDate(scope.row.stopAt) }}</template>
+         </el-table-column>
+        <el-table-column align="left" label="总花费" prop="totalCost" width="120" />
         <el-table-column align="left" label="按钮组">
             <template #default="scope">
-            <el-button type="primary" link icon="edit" class="table-button" @click="updateChargePileFunc(scope.row)">变更</el-button>
+            <el-button type="primary" link icon="edit" class="table-button" @click="updateOrderFunc(scope.row)">变更</el-button>
             <el-button type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
             </template>
         </el-table-column>
@@ -77,26 +84,41 @@
         </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
-      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="200px">
-        <el-form-item label="是否开启:"  prop="isOpen" >
-          <el-switch v-model="formData.isOpen" active-color="#13ce66" inactive-color="#ff4949" active-text="是" inactive-text="否" clearable ></el-switch>
+      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="80px">
+        <el-form-item label="订单所属的用户Id:"  prop="userId" >
+          <el-input v-model.number="formData.userId" :clearable="true" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="充电桩类型:"  prop="pileType" >
-            <el-select v-model="formData.pileType" placeholder="请选择" style="width:100%" :clearable="true" >
+        <el-form-item label="充电的车牌号:"  prop="carId" >
+          <el-input v-model="formData.carId" :clearable="true"  placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="充电类型:"  prop="chargeType" >
+            <el-select v-model="formData.chargeType" placeholder="请选择" style="width:100%" :clearable="true" >
                <el-option v-for="item in ['快充','慢充','其他']" :key="item" :label="item" :value="item" />
             </el-select>
         </el-form-item>
-        <el-form-item label="充电桩累计充电次数:"  prop="chargeCount" >
-          <el-input v-model.number="formData.chargeCount" :clearable="true" placeholder="请输入" />
+        <el-form-item label="充电费用:"  prop="chargeCost" >
+          <el-input-number v-model="formData.chargeCost"  style="width:100%" :precision="2" :clearable="true"  />
         </el-form-item>
-        <el-form-item label="充电站的ID:"  prop="stationId" >
-          <el-input v-model.number="formData.stationId" :clearable="true" placeholder="请输入" />
+        <el-form-item label="充电度数:"  prop="kwh" >
+          <el-input-number v-model="formData.kwh"  style="width:100%" :precision="2" :clearable="true"  />
         </el-form-item>
-        <el-form-item label="充电桩累计充电电量:"  prop="electricity" >
-          <el-input-number v-model="formData.electricity"  style="width:100%" :precision="2" :clearable="true"  />
+        <el-form-item label="充电时长:"  prop="time" >
+          <el-date-picker v-model="formData.time" type="date" style="width:100%" placeholder="选择日期" :clearable="true"  />
         </el-form-item>
-        <el-form-item label="充电时间:"  prop="chargeTime" >
-          <el-date-picker v-model="formData.chargeTime" type="date" style="width:100%" placeholder="选择日期" :clearable="true"  />
+        <el-form-item label="充电桩id:"  prop="pileId" >
+          <el-input v-model.number="formData.pileId" :clearable="true" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="服务费:"  prop="serviceCost" >
+          <el-input-number v-model="formData.serviceCost"  style="width:100%" :precision="2" :clearable="true"  />
+        </el-form-item>
+        <el-form-item label="开始充电时间:"  prop="startedAt" >
+          <el-date-picker v-model="formData.startedAt" type="date" style="width:100%" placeholder="选择日期" :clearable="true"  />
+        </el-form-item>
+        <el-form-item label="结束充电时间:"  prop="stopAt" >
+          <el-date-picker v-model="formData.stopAt" type="date" style="width:100%" placeholder="选择日期" :clearable="true"  />
+        </el-form-item>
+        <el-form-item label="总花费:"  prop="totalCost" >
+          <el-input-number v-model="formData.totalCost"  style="width:100%" :precision="2" :clearable="true"  />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -111,19 +133,19 @@
 
 <script>
 export default {
-  name: 'ChargePile'
+  name: 'Order'
 }
 </script>
 
 <script setup>
 import {
-  createChargePile,
-  deleteChargePile,
-  deleteChargePileByIds,
-  updateChargePile,
-  findChargePile,
-  getChargePileList
-} from '@/api/chargePile'
+  createOrder,
+  deleteOrder,
+  deleteOrderByIds,
+  updateOrder,
+  findOrder,
+  getOrderList
+} from '@/api/order'
 
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
@@ -132,26 +154,46 @@ import { ref, reactive } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
-        isOpen: false,
-        chargeCount: 0,
-        stationId: 0,
-        electricity: 0,
-        chargeTime: new Date(),
+        userId: 0,
+        carId: '',
+        chargeCost: 0,
+        kwh: 0,
+        time: new Date(),
+        pileId: 0,
+        serviceCost: 0,
+        startedAt: new Date(),
+        stopAt: new Date(),
+        totalCost: 0,
         })
 
 // 验证规则
 const rule = reactive({
-               isOpen : [{
+               userId : [{
                    required: true,
                    message: '',
                    trigger: ['input','blur'],
                }],
-               pileType : [{
+               carId : [{
+                   required: true,
+                   message: '请输入格式正确的车牌号',
+                   trigger: ['input','blur'],
+               }],
+               chargeType : [{
                    required: true,
                    message: '',
                    trigger: ['input','blur'],
                }],
-               stationId : [{
+               kwh : [{
+                   required: true,
+                   message: '',
+                   trigger: ['input','blur'],
+               }],
+               pileId : [{
+                   required: true,
+                   message: '',
+                   trigger: ['input','blur'],
+               }],
+               startedAt : [{
                    required: true,
                    message: '',
                    trigger: ['input','blur'],
@@ -178,9 +220,6 @@ const onReset = () => {
 const onSubmit = () => {
   page.value = 1
   pageSize.value = 10
-  if (searchInfo.value.isOpen === ""){
-      searchInfo.value.isOpen=null
-  }
   getTableData()
 }
 
@@ -198,7 +237,7 @@ const handleCurrentChange = (val) => {
 
 // 查询
 const getTableData = async() => {
-  const table = await getChargePileList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
+  const table = await getOrderList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
   if (table.code === 0) {
     tableData.value = table.data.list
     total.value = table.data.total
@@ -233,7 +272,7 @@ const deleteRow = (row) => {
         cancelButtonText: '取消',
         type: 'warning'
     }).then(() => {
-            deleteChargePileFunc(row)
+            deleteOrderFunc(row)
         })
     }
 
@@ -255,7 +294,7 @@ const onDelete = async() => {
         multipleSelection.value.map(item => {
           ids.push(item.ID)
         })
-      const res = await deleteChargePileByIds({ ids })
+      const res = await deleteOrderByIds({ ids })
       if (res.code === 0) {
         ElMessage({
           type: 'success',
@@ -273,19 +312,19 @@ const onDelete = async() => {
 const type = ref('')
 
 // 更新行
-const updateChargePileFunc = async(row) => {
-    const res = await findChargePile({ ID: row.ID })
+const updateOrderFunc = async(row) => {
+    const res = await findOrder({ ID: row.ID })
     type.value = 'update'
     if (res.code === 0) {
-        formData.value = res.data.rechargePile
+        formData.value = res.data.reorder
         dialogFormVisible.value = true
     }
 }
 
 
 // 删除行
-const deleteChargePileFunc = async (row) => {
-    const res = await deleteChargePile({ ID: row.ID })
+const deleteOrderFunc = async (row) => {
+    const res = await deleteOrder({ ID: row.ID })
     if (res.code === 0) {
         ElMessage({
                 type: 'success',
@@ -311,11 +350,16 @@ const openDialog = () => {
 const closeDialog = () => {
     dialogFormVisible.value = false
     formData.value = {
-        isOpen: false,
-        chargeCount: 0,
-        stationId: 0,
-        electricity: 0,
-        chargeTime: new Date(),
+        userId: 0,
+        carId: '',
+        chargeCost: 0,
+        kwh: 0,
+        time: new Date(),
+        pileId: 0,
+        serviceCost: 0,
+        startedAt: new Date(),
+        stopAt: new Date(),
+        totalCost: 0,
         }
 }
 // 弹窗确定
@@ -325,13 +369,13 @@ const enterDialog = async () => {
               let res
               switch (type.value) {
                 case 'create':
-                  res = await createChargePile(formData.value)
+                  res = await createOrder(formData.value)
                   break
                 case 'update':
-                  res = await updateChargePile(formData.value)
+                  res = await updateOrder(formData.value)
                   break
                 default:
-                  res = await createChargePile(formData.value)
+                  res = await createOrder(formData.value)
                   break
               }
               if (res.code === 0) {
