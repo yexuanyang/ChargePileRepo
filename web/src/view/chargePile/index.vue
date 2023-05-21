@@ -36,7 +36,7 @@
 
 <script lang="ts" setup>
 
-import { getChargePileList } from '../../api/chargePile.js'
+import { getChargePileList } from '../../api/chargePile_1.js'
 
 import type {TableColumnCtx} from 'element-plus'
 import {ref} from "vue";

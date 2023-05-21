@@ -15,12 +15,12 @@
                 </div>
               </el-col> -->
               <el-col :span="8" :xs="24" :sm="8">
-                <!-- <div class="flex-center">
+                <div class="flex-center">
                   <el-icon class="dashboard-icon">
                     <avatar />
                   </el-icon>
-                  总用户数 1
-                </div> -->
+                  总用户数 {{ total }}
+                </div>
               </el-col>
               <!-- <el-col :span="8" :xs="24" :sm="8">
                 <div class="flex-center">
@@ -106,12 +106,23 @@
 <script setup>
 import EchartsLine from '@/view/dashboard/dashboardCharts/echartsLine.vue'
 import DashboardTable from '@/view/dashboard/dashboardTable/dashboardTable.vue'
-import getTableData from '@/view/superAdmin/user/user.vue'
+import { getUserList} from '@/api/user'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useWeatherInfo } from '@/view/dashboard/weather.js'
 
 const weatherInfo = useWeatherInfo()
+
+const total = ref(0)
+
+const getTableData = async() => {
+  const table = await getUserList({ page: 1, pageSize:10})
+  if (table.code === 0) {
+    total.value = table.data.total
+  }
+}
+
+getTableData()
 
 const toolCards = ref([
   {

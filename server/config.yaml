@@ -109,7 +109,7 @@ mssql:
 mysql:
   path: 8.140.18.5
   port: "3306"
-  config: charset=utf8mb4&parseTime=True&loc=Local
+  config: charset=utf8mb4&parseTime=true&loc=Local
   db-name: gva
   username: root
   password: 2020211226Yang!
