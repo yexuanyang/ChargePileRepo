@@ -80,6 +80,7 @@ const tableData = ref([])
 
 const getTableData = async() => {
   const table = await getChargePileList()
+    console.log(table)
   tableData.value = table.data.list
 }
 
