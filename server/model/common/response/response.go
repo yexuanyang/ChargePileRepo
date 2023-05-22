@@ -1,6 +1,7 @@
 package response
 
 import (
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -48,6 +49,11 @@ func Fail(c *gin.Context) {
 
 func FailWithMessage(message string, c *gin.Context) {
 	Result(ERROR, map[string]interface{}{}, message, c)
+}
+
+func FailWithParameterError(err error, obj interface{}, c *gin.Context) {
+	msg := utils.ParameterCheck(err, obj)
+	FailWithMessage(msg, c)
 }
 
 func FailWithDetailed(data interface{}, message string, c *gin.Context) {

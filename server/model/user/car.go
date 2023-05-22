@@ -14,6 +14,13 @@ type Car struct {
 	CarBoard        string  `json:"carBoard" form:"carBoard" gorm:"column:car_board;comment:车的品牌型号;"`
 }
 
+// CreateCar 用户添加车辆时的请求结构体
+type CreateCar struct {
+	CarId           string  `json:"carId" form:"carId" gorm:"column:car_id;comment:汽车车牌号;"`
+	BatteryCapacity float64 `json:"batteryCapacity" form:"batteryCapacity" gorm:"column:battery_capacity;comment:;size:22;"`
+	CarBoard        string  `json:"carBoard" form:"carBoard" gorm:"column:car_board;comment:车的品牌型号;"`
+}
+
 // TableName Car 表名
 func (Car) TableName() string {
 	return "cars"
