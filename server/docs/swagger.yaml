@@ -2341,7 +2341,7 @@ paths:
       summary: 回滚自动生成代码
       tags:
       - AutoCode
-  /base/captcha:
+  /client/captcha:
     post:
       consumes:
       - application/json
@@ -2364,7 +2364,7 @@ paths:
       summary: 生成验证码
       tags:
       - Base
-  /base/login:
+  /client/login:
     post:
       parameters:
       - description: 用户名, 密码, 验证码
