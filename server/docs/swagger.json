@@ -1439,7 +1439,7 @@
                 }
             }
         },
-        "/base/captcha": {
+        "/client/captcha": {
             "post": {
                 "security": [
                     {
@@ -1481,7 +1481,7 @@
                 }
             }
         },
-        "/base/login": {
+        "/client/login": {
             "post": {
                 "produces": [
                     "application/json"
