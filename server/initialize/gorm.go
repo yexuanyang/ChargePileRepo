@@ -59,7 +59,7 @@ func RegisterTables() {
 		system.ChargeStationModel{},
 		system.OrderModel{},
 		system.ReportFormsModel{},
-		system.UserModel{}, admin.ChargePile{}, user.Users{}, user.Car{}, user.Order{}, admin.ChargeStation{},
+		system.UserModel{}, user.Users{}, user.Car{}, user.Order{}, admin.ChargeStation{},
 	)
 	if err != nil {
 		global.GVA_LOG.Error("register table failed", zap.Error(err))
