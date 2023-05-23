@@ -1,4 +1,4 @@
-package PileManage
+package admin
 
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -7,11 +7,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (PileRouter) PileOpen(c *gin.Context) {
+// StationSet 充电站集合
+type StationSet struct {
+	StationArray []Station `json:"station_array"` // 充电站数组
+}
+
+// Station 充电站
+type Station struct {
+	ID          uint   `json:"id"` // id标识
+	Name        string `json:"name"`
+	ChargeArray []int  `json:"charge_array"` // 充电桩id数组，充电站下的充电桩
+}
+
+func (PileManageApi) GetPileList(c *gin.Context) {
 	var stationSet StationSet
 	var stationResponse Station
-	var chargeStationModel []system.ChargeStationModel
-	err := global.GVA_DB.Debug().Model(&system.ChargeStationModel{}).Preload("ChargePileModel").Find(&chargeStationModel).Error
+	var chargeStationModel []system.ChargeStation
+	err := global.GVA_DB.Model(&system.ChargeStation{}).Preload("ChargePile").Find(&chargeStationModel).Error
 	if err != nil {
 		response.FailWithMessage("查询失败", c)
 		return
@@ -20,7 +32,7 @@ func (PileRouter) PileOpen(c *gin.Context) {
 	for _, chargeStation := range chargeStationModel {
 		stationResponse.ID = chargeStation.ID
 		stationResponse.Name = chargeStation.Position
-		global.GVA_DB.Debug().Model(&system.ChargePileModel{}).Where("station_id = ?", chargeStation.ID).
+		global.GVA_DB.Debug().Model(&system.ChargePile{}).Where("station_id = ?", chargeStation.ID).
 			Select("id").Scan(&stationResponse.ChargeArray)
 		stationSet.StationArray = append(stationSet.StationArray, stationResponse)
 	}

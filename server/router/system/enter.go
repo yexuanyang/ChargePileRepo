@@ -16,5 +16,4 @@ type RouterGroup struct {
 	DictionaryDetailRouter
 	AuthorityBtnRouter
 	ChatGptRouter
-	ChargeRouter
 }

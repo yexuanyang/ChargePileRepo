@@ -1,6 +1,8 @@
 package system
 
-import "time"
+import (
+	"time"
+)
 
 // OrderModel 订单表
 type OrderModel struct {
@@ -18,5 +20,5 @@ type OrderModel struct {
 	UserID           uint             `json:"user_id"`
 	UserModel        UserModel        `gorm:"foreignKey:UserID" json:"-"`
 	PileID           uint             `json:"pile_id"`
-	ChargePileModel  ChargePileModel  `gorm:"foreignKey:PileID" json:"-"`
+	ChargePileModel  ChargePile       `gorm:"foreignKey:PileID" json:"-"`
 }
