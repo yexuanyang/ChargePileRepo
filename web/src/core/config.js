@@ -3,8 +3,8 @@
  */
 
 const config = {
-  appName: 'Gin-Vue-Admin',
-  appLogo: 'https://www.gin-vue-admin.com/img/logo.png',
+  appName: 'BUPT 软工3组',
+  appLogo: 'https://tse2-mm.cn.bing.net/th/id/OIP-C.GH8v7CufZlYn_2ZvhTe-yAHaHa?pid=ImgDet&rs=1',
   showViteLogo: true
 }
 
