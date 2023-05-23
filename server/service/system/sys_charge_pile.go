@@ -1,7 +1,6 @@
 package system
 
 import (
-	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 )
@@ -19,8 +18,5 @@ func (chargePileService *ChargePileService) GetChargePileList() (list interface{
 	if err != nil {
 		return
 	}
-	var chargePile system.SysChargePile
-	global.GVA_DB.Take(&chargePile)
-	fmt.Print(chargePile)
 	return chargePileList, total, err
 }

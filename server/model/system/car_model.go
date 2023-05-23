@@ -1,6 +1,8 @@
 package system
 
-import "github.com/flipped-aurora/gin-vue-admin/server/model/system/ctype"
+import (
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system/ctype"
+)
 
 // CarModel 充电区汽车表
 type CarModel struct {
@@ -17,5 +19,5 @@ type CarModel struct {
 	UserID             uint               `json:"user_id"`
 	UserModel          UserModel          `gorm:"foreignKey:UserID" json:"-"`
 	PileID             uint               `json:"pile_id"`
-	ChargePileModel    ChargePileModel    `gorm:"foreignKey:PileID" json:"-"`
+	ChargePileModel    ChargePile         `gorm:"foreignKey:PileID" json:"-"`
 }

@@ -2,10 +2,10 @@ package admin
 
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/admin"
-	adminReq "github.com/flipped-aurora/gin-vue-admin/server/model/admin/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	adminReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -22,11 +22,11 @@ var chargeStationService = service.ServiceGroupApp.AdminServiceGroup.ChargeStati
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data body admin.ChargeStation true "创建ChargeStation"
+// @Param data body system.ChargeStation true "创建ChargeStation"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /chargeStation/createChargeStation [post]
 func (chargeStationApi *ChargeStationApi) CreateChargeStation(c *gin.Context) {
-	var chargeStation admin.ChargeStation
+	var chargeStation system.ChargeStation
 	err := c.ShouldBindJSON(&chargeStation)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -46,11 +46,11 @@ func (chargeStationApi *ChargeStationApi) CreateChargeStation(c *gin.Context) {
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data body admin.ChargeStation true "删除ChargeStation"
+// @Param data body system.ChargeStation true "删除ChargeStation"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
 // @Router /chargeStation/deleteChargeStation [delete]
 func (chargeStationApi *ChargeStationApi) DeleteChargeStation(c *gin.Context) {
-	var chargeStation admin.ChargeStation
+	var chargeStation system.ChargeStation
 	err := c.ShouldBindJSON(&chargeStation)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -94,11 +94,11 @@ func (chargeStationApi *ChargeStationApi) DeleteChargeStationByIds(c *gin.Contex
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data body admin.ChargeStation true "更新ChargeStation"
+// @Param data body system.ChargeStation true "更新ChargeStation"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"更新成功"}"
 // @Router /chargeStation/updateChargeStation [put]
 func (chargeStationApi *ChargeStationApi) UpdateChargeStation(c *gin.Context) {
-	var chargeStation admin.ChargeStation
+	var chargeStation system.ChargeStation
 	err := c.ShouldBindJSON(&chargeStation)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -118,11 +118,11 @@ func (chargeStationApi *ChargeStationApi) UpdateChargeStation(c *gin.Context) {
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data query admin.ChargeStation true "用id查询ChargeStation"
+// @Param data query system.ChargeStation true "用id查询ChargeStation"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
 // @Router /chargeStation/findChargeStation [get]
 func (chargeStationApi *ChargeStationApi) FindChargeStation(c *gin.Context) {
-	var chargeStation admin.ChargeStation
+	var chargeStation system.ChargeStation
 	err := c.ShouldBindQuery(&chargeStation)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
