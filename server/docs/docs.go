@@ -1448,7 +1448,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/base/captcha": {
+        "/client/captcha": {
             "post": {
                 "security": [
                     {
@@ -1490,7 +1490,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/base/login": {
+        "/client/login": {
             "post": {
                 "produces": [
                     "application/json"

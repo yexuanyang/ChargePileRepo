@@ -27,21 +27,27 @@ var carInfoService = service.ServiceGroupApp.UserServiceGroup.CarService
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /carInfo/createCar [post]
 func (carInfoApi *CarApi) CreateCar(c *gin.Context) {
-	var carInfo user.Car
-	err := c.ShouldBindJSON(&carInfo)
+	claims, err := utils.GetClaims(c)
+	var carInfo user.CreateCar
+	err = c.ShouldBindJSON(&carInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 	verify := utils.Rules{
-		"UserId": {utils.NotEmpty()},
-		"CarId":  {utils.NotEmpty()},
+		"CarId": {utils.NotEmpty()},
 	}
 	if err := utils.Verify(carInfo, verify); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	if err := carInfoService.CreateCar(&carInfo); err != nil {
+	var carModel = user.Car{
+		UserId:          int(claims.BaseClaims.ID),
+		CarId:           carInfo.CarId,
+		BatteryCapacity: carInfo.BatteryCapacity,
+		CarBoard:        carInfo.CarBoard,
+	}
+	if err := carInfoService.CreateCar(&carModel); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
 	} else {
@@ -165,6 +171,28 @@ func (carInfoApi *CarApi) FindCar(c *gin.Context) {
 func (carInfoApi *CarApi) GetCarList(c *gin.Context) {
 	var pageInfo userReq.CarSearch
 	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if list, total, err := carInfoService.GetCarInfoList(pageInfo); err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		response.OkWithDetailed(response.PageResult{
+			List:     list,
+			Total:    total,
+			Page:     pageInfo.Page,
+			PageSize: pageInfo.PageSize,
+		}, "获取成功", c)
+	}
+}
+
+func (carInfoApi *CarApi) GetCarListByUserId(c *gin.Context) {
+	claims, err := utils.GetClaims(c)
+	var pageInfo userReq.CarSearch
+	err = c.ShouldBindQuery(&pageInfo)
+	pageInfo.Car.UserId = int(claims.BaseClaims.ID)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

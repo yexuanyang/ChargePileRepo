@@ -21,7 +21,8 @@ func (s *CarRouter) InitCarRouter(Router *gin.RouterGroup) {
 		carInfoRouter.PUT("updateCar", carInfoApi.UpdateCar)              // 更新Car
 	}
 	{
-		carInfoRouterWithoutRecord.GET("findCar", carInfoApi.FindCar)       // 根据ID获取Car
-		carInfoRouterWithoutRecord.GET("getCarList", carInfoApi.GetCarList) // 获取Car列表
+		carInfoRouterWithoutRecord.GET("findCar", carInfoApi.FindCar)                       // 根据ID获取Car
+		carInfoRouterWithoutRecord.GET("getCarList", carInfoApi.GetCarList)                 // 获取Car列表
+		carInfoRouterWithoutRecord.GET("getCarListByUserId", carInfoApi.GetCarListByUserId) // 获取Car列表
 	}
 }

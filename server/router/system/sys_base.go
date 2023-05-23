@@ -8,7 +8,7 @@ import (
 type BaseRouter struct{}
 
 func (s *BaseRouter) InitBaseRouter(Router *gin.RouterGroup) (R gin.IRoutes) {
-	baseRouter := Router.Group("base")
+	baseRouter := Router.Group("client")
 	baseApi := v1.ApiGroupApp.SystemApiGroup.BaseApi
 	{
 		baseRouter.POST("login", baseApi.Login)

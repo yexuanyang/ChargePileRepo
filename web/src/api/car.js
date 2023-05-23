@@ -95,3 +95,11 @@ export const getCarList = (params) => {
     params
   })
 }
+
+export const getCarListByUserId = (params) => {
+  return service({
+    url: '/carInfo/getCarListByUserId',
+    method: 'get',
+    params
+  })
+}
