@@ -4,4 +4,5 @@ type ServiceGroup struct {
 	UsersService
 	CarService
 	OrderService
+	ReportService
 }

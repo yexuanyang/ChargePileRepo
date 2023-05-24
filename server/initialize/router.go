@@ -84,6 +84,7 @@ func Routers() *gin.Engine {
 		userRouter.InitUsersRouter(PrivateGroup)
 		userRouter.InitCarRouter(PrivateGroup)
 		userRouter.InitOrderRouter(PrivateGroup)
+		userRouter.InitReportRouter(PrivateGroup)
 
 		pileRouter.InitPileRouter(PrivateGroup)
 

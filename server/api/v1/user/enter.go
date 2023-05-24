@@ -4,4 +4,5 @@ type ApiGroup struct {
 	UsersApi
 	CarApi
 	OrderApi
+	ReportApi
 }
