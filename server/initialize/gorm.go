@@ -58,6 +58,7 @@ func RegisterTables() {
 		system.CarModel{},
 		system.OrderModel{},
 		system.ReportFormsModel{},
+
 		system.UserModel{}, user.Users{}, user.Car{}, user.Order{},
 	)
 	if err != nil {

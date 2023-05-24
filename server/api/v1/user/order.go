@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
@@ -28,7 +29,12 @@ var orderService = service.ServiceGroupApp.UserServiceGroup.OrderService
 // @Router /order/createOrder [post]
 func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 	var order user.Order
-	err := c.ShouldBindJSON(&order)
+	claims, err := utils.GetClaims(c)
+	err = c.ShouldBindJSON(&order)
+	fmt.Println(order.UserId)
+	if order.UserId == 0 {
+		order.UserId = int(claims.BaseClaims.ID)
+	}
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

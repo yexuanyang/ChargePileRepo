@@ -74,3 +74,9 @@ func (orderService *OrderService) GetOrderInfoList(info userReq.OrderSearch) (li
 	err = db.Limit(limit).Offset(offset).Find(&orders).Error
 	return orders, total, err
 }
+
+// GetOrderByUserId 根据user_id获取Order记录
+func (orderService *OrderService) GetOrderByUserId(id uint) (order user.Order, err error) {
+	err = global.GVA_DB.Where("user_id = ?", id).Find(&order).Error
+	return
+}
