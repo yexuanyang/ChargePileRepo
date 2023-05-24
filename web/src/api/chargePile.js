@@ -95,3 +95,11 @@ export const getChargePileList = (params) => {
     params
   })
 }
+
+export const UpdateChargePileByIds = (data) => {
+  return service({
+    url: '/admin/manage_isOpen',
+    method: 'post',
+    data
+  })
+}

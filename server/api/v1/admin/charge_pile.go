@@ -34,7 +34,6 @@ func (chargePileApi *ChargePileApi) CreateChargePile(c *gin.Context) {
 		return
 	}
 	verify := utils.Rules{
-		"IsOpen":    {utils.NotEmpty()},
 		"PileType":  {utils.NotEmpty()},
 		"StationId": {utils.NotEmpty()},
 	}
@@ -115,7 +114,6 @@ func (chargePileApi *ChargePileApi) UpdateChargePile(c *gin.Context) {
 		return
 	}
 	verify := utils.Rules{
-		"IsOpen":    {utils.NotEmpty()},
 		"PileType":  {utils.NotEmpty()},
 		"StationId": {utils.NotEmpty()},
 	}

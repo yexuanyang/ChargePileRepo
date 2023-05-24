@@ -60,6 +60,20 @@
                         </el-button>
                     </template>
                 </el-popover>
+                <el-button
+                    :disabled="!multipleSelection.length"
+                    icon="open"
+                    style="margin-left: 10px;"
+                    @click=OpenPile
+                >开启充电桩
+                </el-button>
+                <el-button
+                    :disabled="!multipleSelection.length"
+                    icon="close"
+                    style="margin-left: 10px;"
+                    @click=ClosePile
+                >关闭充电桩
+                </el-button>
             </div>
             <el-table
                 ref="multipleTable"
@@ -170,7 +184,8 @@ import {
     deleteChargePileByIds,
     updateChargePile,
     findChargePile,
-    getChargePileList
+    getChargePileList,
+    UpdateChargePileByIds
 } from '@/api/chargePile'
 
 // 全量引入格式化工具 请按需保留
@@ -186,11 +201,11 @@ const formData = ref({
     electricity: 0,
     chargeTime: 0,
 })
-
+console.log(formData)
 // 验证规则
 const rule = reactive({
     isOpen: [{
-        required: true,
+        required: false,
         message: '',
         trigger: ['input', 'blur'],
     }],
@@ -279,7 +294,6 @@ const getTableData = async () => {
 }
 
 getTableData()
-
 // ============== 表格控制部分结束 ===============
 
 // 获取需要的字典 可能为空 按需保留
@@ -294,6 +308,34 @@ const multipleSelection = ref([])
 // 多选
 const handleSelectionChange = (val) => {
     multipleSelection.value = val
+}
+
+// 打开开关
+async function OpenPile(){
+    const ids = []
+    multipleSelection.value &&
+    multipleSelection.value.map(item => {
+        ids.push(item.ID)
+    })
+    await UpdateChargePileByIds({
+        is_open: true,
+        ids: ids
+    })
+    getTableData()
+}
+
+// 关上开关
+async function ClosePile(){
+    const ids = []
+    multipleSelection.value &&
+    multipleSelection.value.map(item => {
+        ids.push(item.ID)
+    })
+    await UpdateChargePileByIds({
+        is_open: false,
+        ids: ids
+    })
+    getTableData()
 }
 
 // 删除行
@@ -383,7 +425,7 @@ const closeDialog = () => {
         chargeCount: 0,
         stationId: 0,
         electricity: 0,
-        chargeTime: new Date(),
+        chargeTime: 0,
     }
 }
 // 弹窗确定
