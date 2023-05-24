@@ -64,14 +64,14 @@
                     :disabled="!multipleSelection.length"
                     icon="open"
                     style="margin-left: 10px;"
-                    @click=OpenPile
+                    @click="openConfirm"
                 >开启充电桩
                 </el-button>
                 <el-button
                     :disabled="!multipleSelection.length"
                     icon="close"
                     style="margin-left: 10px;"
-                    @click=ClosePile
+                    @click="closeConfirm"
                 >关闭充电桩
                 </el-button>
             </div>
@@ -87,8 +87,15 @@
                 <el-table-column align="left" label="日期" width="180">
                     <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
                 </el-table-column>
-                <el-table-column align="left" label="是否开启" prop="isOpen" width="120">
-                    <template #default="scope">{{ formatBoolean(scope.row.isOpen) }}</template>
+                <el-table-column align="left" label="状态" prop="isOpen" width="120">
+                    <template #default="scope">
+                        <i v-if="scope.row.isOpen" class="fa fa-power-off" style="color: #52c41a">
+                            <span style=" color: #595959;margin-left: 10px">开机</span>
+                        </i>
+                        <i v-else="!scope.row.isOpen" class="fa fa-power-off">
+                            <span style="margin-left: 10px">关机</span>
+                        </i>
+                    </template>
                 </el-table-column>
                 <el-table-column align="left" label="充电桩类型" prop="pileType" width="120"/>
                 <el-table-column align="left" label="充电桩累计充电次数" prop="chargeCount" width="120"/>
@@ -310,8 +317,27 @@ const handleSelectionChange = (val) => {
     multipleSelection.value = val
 }
 
+const openConfirm = () => {
+    ElMessageBox.confirm('确定要对以下充电桩进行开机操作吗?', '开启充电桩', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'success'
+    }).then(() => {
+        OpenPile()
+    })
+}
+
+const closeConfirm = () => {
+    ElMessageBox.confirm('确定要对以下充电桩进行关机操作吗?', '关闭充电桩', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+    }).then(() => {
+        ClosePile()
+    })
+}
 // 打开开关
-async function OpenPile(){
+async function OpenPile() {
     const ids = []
     multipleSelection.value &&
     multipleSelection.value.map(item => {
@@ -325,7 +351,7 @@ async function OpenPile(){
 }
 
 // 关上开关
-async function ClosePile(){
+async function ClosePile() {
     const ids = []
     multipleSelection.value &&
     multipleSelection.value.map(item => {

@@ -5,16 +5,14 @@
         <div class="gva-top-card-left">
           <div class="gva-top-card-left-title">你好 智能充电桩管理员</div>
           <div class="gva-top-card-left-rows">
-            <el-row>
-              <el-col :span="8" :xs="24" :sm="8">
-                <div class="flex-center">
-                  <el-icon class="dashboard-icon">
-                    <avatar />
-                  </el-icon>
-                  总用户数 {{ total }}
-                </div>
-              </el-col>
-            </el-row>
+              <el-button type="text" @click="dialogMapVisible = true">地图</el-button>
+              <el-dialog v-model="dialogMapVisible" title="充电站详细地址">
+                  <MapContainer></MapContainer>
+                  <span slot="footer" class="dialog-footer" style="display: flex; justify-content: right">
+                      <el-button type="primary" style="margin-top: 10px"
+                                 @click="dialogMapVisible = false">确 定</el-button>
+                  </span>
+              </el-dialog>
           </div>
         </div>
         <img src="@/assets/dashboard.png" class="gva-top-card-right" alt>
@@ -86,44 +84,44 @@
 </template>
 
 <script setup>
-import { getUserList } from '@/api/user'
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useWeatherInfo } from '@/view/dashboard/weather.js'
-import { getChargeStationList } from '@/api/chargeStation'
+import {getUserList} from '@/api/user'
+import {reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {getChargeStationList} from '@/api/chargeStation'
+import MapContainer from "@/view/chargePile/MapContainer.vue";
 
-const weatherInfo = useWeatherInfo()
+const dialogMapVisible = ref(false)
 
 const total = ref(0)
 const toolCards = ref([
-  {
-    label: '用户管理',
-    icon: 'monitor',
-    name: 'user',
-    color: '#ff9c6e',
-    bg: 'rgba(255, 156, 110,.3)'
-  },
-  {
-    label: '角色管理',
-    icon: 'setting',
-    name: 'authority',
-    color: '#69c0ff',
-    bg: 'rgba(105, 192, 255,.3)'
-  },
-  {
-    label: '菜单管理',
-    icon: 'menu',
-    name: 'menu',
-    color: '#b37feb',
-    bg: 'rgba(179, 127, 235,.3)'
-  },
-  {
-    label: '充电桩管理',
-    icon: 'cpu',
-    name: 'chargePile',
-    color: '#ffd666',
-    bg: 'rgba(255, 214, 102,.3)'
-  },
+    {
+        label: '用户管理',
+        icon: 'monitor',
+        name: 'user',
+        color: '#ff9c6e',
+        bg: 'rgba(255, 156, 110,.3)'
+    },
+    {
+        label: '角色管理',
+        icon: 'setting',
+        name: 'authority',
+        color: '#69c0ff',
+        bg: 'rgba(105, 192, 255,.3)'
+    },
+    {
+        label: '菜单管理',
+        icon: 'menu',
+        name: 'menu',
+        color: '#b37feb',
+        bg: 'rgba(179, 127, 235,.3)'
+    },
+    {
+        label: '充电桩管理',
+        icon: 'cpu',
+        name: 'chargePile',
+        color: '#ffd666',
+        bg: 'rgba(255, 214, 102,.3)'
+    },
 ])
 
 const dataStatistic = reactive({
