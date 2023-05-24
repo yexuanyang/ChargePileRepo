@@ -73,6 +73,7 @@ func Routers() *gin.Engine {
 		adminRouter := router.RouterGroupApp.Admin
 
 		adminRouter.InitChargeStationRouter(PrivateGroup)
+		adminRouter.InitChargePileRouter(PrivateGroup)
 	}
 	{
 
