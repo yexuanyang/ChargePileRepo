@@ -15,5 +15,6 @@ func (reportRouter *ReportRouter) InitReportRouter(Router *gin.RouterGroup) {
 	{
 		reportRouterGroup.POST("getDurationTotalCharge", reportApi.GetDurationChargeKwh)
 		reportRouterGroup.POST("getDurationTotalPrice", reportApi.GetDurationPrice)
+		reportRouterGroup.POST("getDurationChargeInfo", reportApi.GetDurationChargeInfo)
 	}
 }

@@ -136,7 +136,7 @@ import { dateEquals, type TableColumnCtx } from 'element-plus'
 import { getOrderListByUserId } from '../../api/order'
 import { formatDate } from '../../utils/format'
 import { computed } from '@vue/reactivity'
-import { getDurationTotalCharge ,getDurationTotalPrice} from '../../api/report'
+import { getDurationTotalCharge, getDurationTotalPrice } from '../../api/report'
 import { async } from 'q'
 
 //=======数据对比部分========
@@ -190,10 +190,10 @@ const monthChargeClassName = computed(() => {
 const getMonthChargeKwh = async () => {
     const date = new Date()
     date.setMonth(date.getMonth(), 0)
-    date.setHours(24,0,0)
+    date.setHours(24, 0, 0)
     const endDate = new Date()
-    endDate.setMonth(endDate.getMonth()+1,0)
-    endDate.setHours(24,0,0)
+    endDate.setMonth(endDate.getMonth() + 1, 0)
+    endDate.setHours(24, 0, 0)
     const total = await getDurationTotalCharge({ date: date, endDate: endDate })
     if (total.code == 0) {
         monthChargeKwh.value = total.data.total
@@ -203,10 +203,10 @@ const getMonthChargeKwh = async () => {
 const getLastMonthChargeKwh = async () => {
     const date = new Date()
     date.setMonth(date.getMonth() - 1, 0)
-    date.setHours(24,0,0)
+    date.setHours(24, 0, 0)
     const endDate = new Date()
-    endDate.setMonth(endDate.getMonth(),0)
-    endDate.setHours(24,0,0)
+    endDate.setMonth(endDate.getMonth(), 0)
+    endDate.setHours(24, 0, 0)
     const total = await getDurationTotalCharge({ date: date, endDate: endDate })
     if (total.code == 0) {
         LastMonthChargeKwh.value = total.data.total
@@ -230,10 +230,10 @@ const dayChargePriceClassName = computed(() => {
 const getTodayChargePrice = async () => {
     const date = new Date()
     date.setMonth(date.getMonth(), 0)
-    date.setHours(24,0,0)
+    date.setHours(24, 0, 0)
     const endDate = new Date()
-    endDate.setMonth(endDate.getMonth()+1,0)
-    endDate.setHours(24,0,0)
+    endDate.setMonth(endDate.getMonth() + 1, 0)
+    endDate.setHours(24, 0, 0)
     const total = await getDurationTotalPrice({ date: date, endDate: endDate })
     if (total.code == 0) {
         todayChargePrice.value = total.data.total
@@ -243,10 +243,10 @@ const getTodayChargePrice = async () => {
 const getYesterdayChargePrice = async () => {
     const date = new Date()
     date.setMonth(date.getMonth() - 1, 0)
-    date.setHours(24,0,0)
+    date.setHours(24, 0, 0)
     const endDate = new Date()
-    endDate.setMonth(endDate.getMonth(),0)
-    endDate.setHours(24,0,0)
+    endDate.setMonth(endDate.getMonth(), 0)
+    endDate.setHours(24, 0, 0)
     const total = await getDurationTotalCharge({ date: date, endDate: endDate })
     if (total.code == 0) {
         yesterdayChargePrice.value = total.data.total
@@ -261,13 +261,16 @@ const getDayChargePriceRate = async () => {
 
 
 //========获取要展示的比较数据==========
-const initData = async()=>{
+const initData = async () => {
     await getDayChargeRate()
     await getMonthChargeRate()
     await getDayChargePriceRate()
 }
 
 initData()
+
+
+
 
 // =======图表部分========
 const chart = ref();

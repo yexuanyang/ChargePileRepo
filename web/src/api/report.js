@@ -18,3 +18,11 @@ export const getDurationTotalPrice = (data) => {
         data: data
     })
 }
+
+export const getDurationChargeInfo = (data) => {
+    return service({
+        url: '/report/getDurationChargeInfo',
+        method: 'post',
+        data: data
+    })
+}
