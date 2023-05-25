@@ -90,9 +90,22 @@
             <div ref="chart" style="width: 100%;height: 800px;margin-top: 50px;display:inline-block;"></div>
         </el-col>
         <el-col :span="12">
+            <el-form :inline="true" class="demo-form-inline" v-model="searchInfo" @keyup.enter="onSubmit"
+                style="margin-top: 50px;">
+                <el-form-item label="报表时间">
+                    <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="选择报表开始时间"
+                        :shortcuts="shortcuts" />
+                    ——
+                    <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="选择报表结束时间"
+                        :shortcuts="shortcuts" />
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
+                    <el-button icon="refresh" @click="onReset">重置</el-button>
+                </el-form-item>
+            </el-form>
             <el-table :data="tableData" border show-summary :summary-method="getSummaries"
-                style="width: 100%;margin-top: 50px;display:inline-block;"
-                :default-sort="{ prop: 'userId', order: 'descending' }">
+                style="width: 100%;display:inline-block;" :default-sort="{ prop: 'userId', order: 'descending' }">
                 <el-table-column align="left" label="日期" width="180" fixed prop="CreatedAt" sortable>
                     <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
                 </el-table-column>
@@ -113,6 +126,7 @@
                 </el-table-column>
                 <el-table-column align="left" label="总花费" prop="totalCost" width="120" fixed="right" sortable />
             </el-table>
+
             <div class="demo-pagination-block">
                 <el-pagination v-model:current-page="page" v-model:page-size="pageSize" :page-sizes="[10, 20, 30, 40]"
                     :small="small" :disabled="disabled" :background="background"
@@ -131,13 +145,36 @@ import {
     Warning,
 } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import { onMounted, ref } from "vue"
-import { dateEquals, type TableColumnCtx } from 'element-plus'
+import { onMounted, ref } from 'vue'
+import { type TableColumnCtx } from 'element-plus'
 import { getOrderListByUserId } from '../../api/order'
 import { formatDate } from '../../utils/format'
 import { computed } from '@vue/reactivity'
-import { getDurationTotalCharge, getDurationTotalPrice } from '../../api/report'
-import { async } from 'q'
+import { getDurationTotalCharge, getDurationTotalPrice, getDurationReportInfo } from '../../api/report'
+import { template } from 'lodash'
+
+const shortcuts = [
+    {
+        text: '今天',
+        value: new Date()
+    },
+    {
+        text: '昨天',
+        value: () => {
+            const date = new Date()
+            date.setTime(date.getTime() - 3600 * 1000 * 24)
+            return date
+        },
+    },
+    {
+        text: '一周前',
+        value: () => {
+            const date = new Date()
+            date.setTime(date.getTime() - 3600 * 1000 * 24 * 7)
+            return date
+        },
+    },
+]
 
 //=======数据对比部分========
 
@@ -174,7 +211,7 @@ const getYesterDayChargeKwh = async () => {
 const getDayChargeRate = async () => {
     await getYesterDayChargeKwh()
     await getTodayChargeKwh()
-    dayChargeRate.value = todayChargeKwh.value - yesterdayChargeKwh.value
+    dayChargeRate.value = Number((todayChargeKwh.value - yesterdayChargeKwh.value).toFixed(2))
 }
 
 
@@ -216,7 +253,7 @@ const getLastMonthChargeKwh = async () => {
 const getMonthChargeRate = async () => {
     await getLastMonthChargeKwh()
     await getMonthChargeKwh()
-    monthChargeRate.value = monthChargeKwh.value - LastMonthChargeKwh.value
+    monthChargeRate.value = Number((monthChargeKwh.value - LastMonthChargeKwh.value).toFixed(2))
 }
 
 //=======每日充电总金额对比========
@@ -256,7 +293,7 @@ const getYesterdayChargePrice = async () => {
 const getDayChargePriceRate = async () => {
     await getYesterdayChargePrice()
     await getTodayChargePrice()
-    dayChargePriceRate.value = todayChargePrice.value - yesterdayChargePrice.value
+    dayChargePriceRate.value = Number((todayChargePrice.value - yesterdayChargePrice.value).toFixed(2))
 }
 
 
@@ -270,85 +307,8 @@ const initData = async () => {
 initData()
 
 
-
-
 // =======图表部分========
 const chart = ref();
-
-onMounted(() => {
-    init()
-})
-
-const init = () => {
-    const myChart = echarts.init(chart.value);
-
-    // 此处粘贴图表代码
-    let option = {
-        legend: {},
-        tooltip: {
-            trigger: 'axis',
-            showContent: false
-        },
-        dataset: {
-            source: [
-                ['product', '2012', '2013', '2014', '2015', '2016', '2017'],
-                ['Milk Tea', 56.5, 82.1, 88.7, 70.1, 53.4, 85.1],
-                ['Matcha Latte', 51.1, 51.4, 55.1, 53.3, 73.8, 68.7],
-                ['Cheese Cocoa', 40.1, 62.2, 69.5, 36.4, 45.2, 32.5],
-                ['Walnut Brownie', 25.2, 37.1, 41.2, 18, 33.9, 49.1]
-            ]
-        },
-        xAxis: { type: 'category' },
-        yAxis: { gridIndex: 0 },
-        grid: { top: '55%' },
-        series: [
-            {
-                type: 'line',
-                smooth: true,
-                seriesLayoutBy: 'row',
-                emphasis: { focus: 'series' }
-            },
-            {
-                type: 'line',
-                smooth: true,
-                seriesLayoutBy: 'row',
-                emphasis: { focus: 'series' }
-            },
-            {
-                type: 'line',
-                smooth: true,
-                seriesLayoutBy: 'row',
-                emphasis: { focus: 'series' }
-            },
-            {
-                type: 'line',
-                smooth: true,
-                seriesLayoutBy: 'row',
-                emphasis: { focus: 'series' }
-            },
-            {
-                type: 'pie',
-                id: 'pie',
-                radius: '30%',
-                center: ['50%', '25%'],
-                emphasis: {
-                    focus: 'self'
-                },
-                label: {
-                    formatter: '{b}: {@2012} ({d}%)'
-                },
-                encode: {
-                    itemName: 'product',
-                    value: '2012',
-                    tooltip: '2012'
-                }
-            }
-        ]
-    }
-
-    myChart.setOption(option)
-}
-
 
 interface Order {
     CreatedAt: Date
@@ -365,6 +325,8 @@ interface Order {
     totalCost: number
 }
 
+
+//定义一个获取json value值的函数
 const SummaryDataKey = ["chargeCost", "kwh", "serviceCost", "totalCost"]
 
 interface SummaryMethodProps<T = Order> {
@@ -405,7 +367,7 @@ const disabled = ref(false)
 const background = ref(false)
 const total = ref(0)
 const tableData = ref([])
-const searchInfo = ref({})
+const searchInfo = ref({ startCreatedAt: null, endCreatedAt: null })
 
 const handleSizeChange = (val: number) => {
     pageSize.value = val
@@ -417,6 +379,7 @@ const handleCurrentChange = (val) => {
     getTableData()
 }
 
+
 const getTableData = async () => {
     const table = await getOrderListByUserId({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
     if (table.code === 0) {
@@ -427,7 +390,83 @@ const getTableData = async () => {
     }
 }
 
+const onSubmit = () => {
+    page.value = 1
+    pageSize.value = 10
+    getTableData()
+}
+
+const onReset = () => {
+    searchInfo.value = { startCreatedAt: null, endCreatedAt: null }
+    getTableData()
+}
+
 getTableData()
+
+const init = (dataset) => {
+    const myChart = echarts.init(chart.value)
+
+    let option = {
+        legend: {},
+        tooltip: {
+            trigger: 'axis',
+            showContent: true
+        },
+        dataset: {
+            dimensions: ['日期', '充电度数', '充电金额'],
+            source: dataset
+        },
+        xAxis: { type: 'category' },
+        yAxis: { gridIndex: 0 },
+        series: [
+            {
+                type: 'line',
+                smooth: true,
+                seriesLayoutBy: 'row',
+                emphasis: { focus: 'series' }
+            },
+            {
+                type: 'line',
+                smooth: true,
+                seriesLayoutBy: 'row',
+                emphasis: { focus: 'series' }
+            },
+        ]
+    };
+
+    myChart.setOption(option)
+}
+
+onMounted(() => {
+    type resType = {
+        date: string
+        total_cost: number
+        total_kwh: number
+    }
+    const pictureData = ref<resType[]>([])
+    const getPictureData = async () => {
+        const now = new Date()
+        const lastWeek = new Date(now.getTime() - 3600 * 1000 * 24 * 7)
+        const resData = await getDurationReportInfo({ date: lastWeek, endDate: now })
+        if (resData.code == 0) {
+            pictureData.value = resData.data
+        }
+        //将json列表转换成列表,dataSet存储最后的列表
+        let keyList: (keyof resType)[] = ['date', 'total_cost', 'total_kwh']
+        let len = keyList.length
+        let dataSet: (number | string)[][] = []
+        for (let i = 0; i < len; i++) {
+            let tempList: (number | string)[] = []
+            for (let j = 0; j < pictureData.value.length; j++) {
+                tempList.push(pictureData.value[j][keyList[i]])
+            }
+            dataSet.push(tempList)
+        }
+
+        init(dataSet)
+    }
+    getPictureData()
+})
 
 </script>  
 

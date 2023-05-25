@@ -1,10 +1,18 @@
 package response
 
 type ChargePileInfoResponse struct {
+	PileId            int     `json:"pileId" gorm:"column:pileId"`
 	ChargeCount       int     `json:"chargeCount" gorm:"column:chargeCount"`
 	ChargeTime        float64 `json:"chargeTime" gorm:"column:chargeTime"`
 	ChargeElectricity float64 `json:"chargeElectricity" gorm:"column:chargeElectricity"`
 	//ChargeElectricityFee float64 `json:"chargeFee"`
 	//ChargeServiceFee     float64 `json:"chargeServiceFee"`
 	//ChargeFee            float64 `json:"ChargeFee"`
+}
+
+// OrderReportResponse 订单报表的返回信息
+type OrderReportResponse struct {
+	Date      string  `json:"date" gorm:"column:date"`
+	TotalKwh  float64 `json:"total_kwh" gorm:"column:totalKwh"`
+	TotalCost float64 `json:"total_cost" gorm:"column:totalCost"`
 }

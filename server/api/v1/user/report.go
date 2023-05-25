@@ -80,3 +80,24 @@ func (reportApi *ReportApi) GetDurationChargeInfo(c *gin.Context) {
 	}
 	response.OkWithData(total, c)
 }
+
+// GetDurationReportInfo path: /report/getDurationReportInfo
+func (reportApi *ReportApi) GetDurationReportInfo(c *gin.Context) {
+	var report request.ReportSearch
+	claims, err := utils.GetClaims(c)
+	err = c.ShouldBindJSON(&report)
+	if report.UserId == 0 {
+		report.UserId = int(claims.BaseClaims.ID)
+	}
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	var total []userRes.OrderReportResponse
+	total, err = reportService.GetDurationReportInfo(report)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	response.OkWithData(total, c)
+}
