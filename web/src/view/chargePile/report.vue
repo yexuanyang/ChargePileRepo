@@ -17,7 +17,7 @@
             </el-form-item>
         </el-form>
         <el-row>
-            <el-descriptions class="margin-top" title="充电桩报表" :column="3" :size="size" border>
+            <el-descriptions class="margin-top" title="充电桩报表" :column="7" :size="size" border>
                 <el-descriptions-item>
                     <template #label>
                         <div class="cell-item">
@@ -56,6 +56,36 @@
                     </template>
                     <div class="cell-item">
                         {{ reportInfo.chargeElectricity }}
+                    </div>
+                </el-descriptions-item>
+                <el-descriptions-item>
+                    <template #label>
+                        <div class="cell-item">
+                            充电桩累计充电费用
+                        </div>
+                    </template>
+                    <div class="cell-item">
+                        {{ reportInfo.chargeCost }}
+                    </div>
+                </el-descriptions-item>
+                <el-descriptions-item>
+                    <template #label>
+                        <div class="cell-item">
+                            充电桩累计服务费用
+                        </div>
+                    </template>
+                    <div class="cell-item">
+                        {{ reportInfo.serviceCost }}
+                    </div>
+                </el-descriptions-item>
+                <el-descriptions-item>
+                    <template #label>
+                        <div class="cell-item">
+                            充电桩累计总费用
+                        </div>
+                    </template>
+                    <div class="cell-item">
+                        {{ reportInfo.totalCost }}
                     </div>
                 </el-descriptions-item>
             </el-descriptions>

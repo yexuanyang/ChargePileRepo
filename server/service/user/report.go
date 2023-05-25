@@ -43,7 +43,9 @@ func (reportService *ReportService) GetDurationTotalPrice(report request.ReportS
 func (reportService *ReportService) GetDurationChargeInfo(report request.ChargePileReportSearch) (total response.ChargePileInfoResponse, err error) {
 	db := global.GVA_DB.Model(&system.ChargePile{}).Where("id = ?", report.PileId)
 	db = db.Where("created_at BETWEEN ? AND ?", report.Date, report.EndDate)
-	db = db.Select("id as pileId,SUM(charge_count) as chargeCount,CAST(SUM(charge_time) as DECIMAL(10,2)) as chargeTime,CAST(SUM(electricity) as DECIMAL(10,2))as chargeElectricity")
+	db = db.Select("id as pileId,SUM(charge_count) as chargeCount,CAST(SUM(charge_time) as DECIMAL(10,2)) as chargeTime," +
+		"CAST(SUM(electricity) as DECIMAL(10,2))as chargeElectricity, CAST(SUM(service_cost) as DECIMAL(10,2))as serviceCost, " +
+		"CAST(SUM(total_cost) as DECIMAL(10,2))as totalCost, CAST(SUM(charge_cost) as DECIMAL(10,2))as chargeCost")
 	tx := db.Group("id").First(&total)
 	if tx.Error != nil {
 		if tx.RowsAffected == 0 {
