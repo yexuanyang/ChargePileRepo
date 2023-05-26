@@ -58,10 +58,11 @@ func (reportService *ReportService) GetDurationChargeInfo(report request.ChargeP
 // GetDurationReportInfo 获得一段时间的订单报表,按照日期来分组
 // 返回的结构体中含有日期、总充电量、总金额
 func (reportService *ReportService) GetDurationReportInfo(report request.ReportSearch) (res []response.OrderReportResponse, err error) {
-	const selectSQL = "DATE_FORMAT( created_at, '%Y-%m-%d' ) AS date,CAST(SUM( kwh ) AS DECIMAL(10,2)) AS totalKwh,CAST(SUM( total_cost ) AS DECIMAL(10,2)) AS totalCost"
+	const selectSQL = "DATE_FORMAT( created_at, '%Y-%m-%d' ) AS date,CAST(SUM( kwh ) AS DECIMAL(10,2)) AS total_kwh,CAST(SUM( total_cost ) AS DECIMAL(10,2)) AS total_cost," +
+		"CAST(SUM( service_cost ) AS DECIMAL ( 10, 2 )) AS total_service_cost ,CAST(SUM( charge_cost ) AS DECIMAL ( 10, 2 )) AS total_charge_cost"
 	db := global.GVA_DB.Model(&user.Order{}).Select(selectSQL)
 	db = db.Where("created_at BETWEEN ? AND ?", report.Date, report.EndDate).Where("user_id = ?", report.UserId).Group("DATE_FORMAT( created_at, '%Y-%m-%d' )")
-	tx := db.Order("DATE_FORMAT( created_at, '%Y-%m-%d' ) DESC").Debug().Find(&res)
+	tx := db.Order("DATE_FORMAT( created_at, '%Y-%m-%d' ) DESC").Find(&res)
 	if tx.Error != nil {
 		if tx.RowsAffected == 0 {
 			return nil, errors.New("没有符合条件的记录")

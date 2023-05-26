@@ -12,7 +12,9 @@ type ChargePileInfoResponse struct {
 
 // OrderReportResponse 订单报表的返回信息
 type OrderReportResponse struct {
-	Date      string  `json:"date" gorm:"column:date"`
-	TotalKwh  float64 `json:"total_kwh" gorm:"column:totalKwh"`
-	TotalCost float64 `json:"total_cost" gorm:"column:totalCost"`
+	Date        string  `json:"date" gorm:"column:date"`
+	TotalKwh    float64 `json:"totalKwh" gorm:"column:total_kwh"`
+	TotalCost   float64 `json:"totalCost" gorm:"column:total_cost"`
+	ServiceCost float64 `json:"serviceCost" gorm:"column:total_service_cost"`
+	ChargeCost  float64 `json:"chargeCost" gorm:"column:total_charge_cost"`
 }

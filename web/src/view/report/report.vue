@@ -151,7 +151,8 @@ import { getOrderListByUserId } from '../../api/order'
 import { formatDate } from '../../utils/format'
 import { computed } from '@vue/reactivity'
 import { getDurationTotalCharge, getDurationTotalPrice, getDurationReportInfo } from '../../api/report'
-import { template } from 'lodash'
+import { last, template } from 'lodash'
+import { nextTick } from 'process'
 
 const shortcuts = [
     {
@@ -307,8 +308,7 @@ const initData = async () => {
 initData()
 
 
-// =======图表部分========
-const chart = ref();
+// =======表格部分========
 
 interface Order {
     CreatedAt: Date
@@ -326,7 +326,6 @@ interface Order {
 }
 
 
-//定义一个获取json value值的函数
 const SummaryDataKey = ["chargeCost", "kwh", "serviceCost", "totalCost"]
 
 interface SummaryMethodProps<T = Order> {
@@ -348,7 +347,7 @@ const getSummaries = (param: SummaryMethodProps) => {
                 sums[index] = `${values.reduce((prev, curr) => {
                     const value = Number(curr)
                     if (!Number.isNaN(value)) {
-                        return prev + curr
+                        return Number((prev + curr).toFixed(2))
                     } else {
                         return prev
                     }
@@ -394,18 +393,40 @@ const onSubmit = () => {
     page.value = 1
     pageSize.value = 10
     getTableData()
+    getPictureData()
 }
 
 const onReset = () => {
     searchInfo.value = { startCreatedAt: null, endCreatedAt: null }
     getTableData()
+    getPictureData()
 }
 
 getTableData()
 
-const init = (dataset) => {
-    const myChart = echarts.init(chart.value)
 
+//=======图形部分========
+
+// 定义后端返回的json的key和value
+type resType = {
+    date: string
+    totalCost: number
+    totalKwh: number
+    serviceCost: number
+    chargeCost: number
+}
+const chart = ref();
+
+// 初始化echarts图例
+var myChart: echarts.ECharts
+nextTick(() => { myChart = echarts.init(chart.value) })
+// 初始化echarts要用到的dataset
+const dataSet = ref<(number | string)[][]>([])
+// 存储返回回来的json列表
+const pictureData = ref<resType[]>([])
+
+
+const setOption = (dataset) => {
     let option = {
         legend: {},
         tooltip: {
@@ -413,12 +434,29 @@ const init = (dataset) => {
             showContent: true
         },
         dataset: {
-            dimensions: ['日期', '充电度数', '充电金额'],
+            dimensions: ['日期', '充电度数', '充电总金额', '服务费用', '充电费用'],
             source: dataset
         },
         xAxis: { type: 'category' },
         yAxis: { gridIndex: 0 },
+        dataZoom: [
+            {
+                type: 'inside',
+            },
+        ],
         series: [
+            {
+                type: 'line',
+                smooth: true,
+                seriesLayoutBy: 'row',
+                emphasis: { focus: 'series' },
+            },
+            {
+                type: 'line',
+                smooth: true,
+                seriesLayoutBy: 'row',
+                emphasis: { focus: 'series' }
+            },
             {
                 type: 'line',
                 smooth: true,
@@ -433,40 +471,38 @@ const init = (dataset) => {
             },
         ]
     };
-
     myChart.setOption(option)
 }
-
-onMounted(() => {
-    type resType = {
-        date: string
-        total_cost: number
-        total_kwh: number
+// 从后端获取数据（默认是一个星期时间段），将数据设置到图形中
+const getPictureData = async () => {
+    const now = new Date()
+    const lastWeek = new Date(now.getTime() - 3600 * 1000 * 24 * 7)
+    // 用户选择了起始日期和结束日期就指定，否则默认一周
+    const start = searchInfo.value.startCreatedAt == null ? lastWeek : searchInfo.value.startCreatedAt
+    const end = searchInfo.value.endCreatedAt == null ? now : searchInfo.value.endCreatedAt
+    console.log(start)
+    console.log(end)
+    const resData = await getDurationReportInfo({ date: start, endDate: end })
+    if (resData.code == 0) {
+        pictureData.value = resData.data
     }
-    const pictureData = ref<resType[]>([])
-    const getPictureData = async () => {
-        const now = new Date()
-        const lastWeek = new Date(now.getTime() - 3600 * 1000 * 24 * 7)
-        const resData = await getDurationReportInfo({ date: lastWeek, endDate: now })
-        if (resData.code == 0) {
-            pictureData.value = resData.data
+    // 清空dataSet的旧值(后续调用这个函数的时候可能要更换dataSet数据，所以清空旧值)
+    dataSet.value = []
+    //将json列表转换成列表,dataSet存储最后的列表
+    let keyList = Object.keys(pictureData.value[0])
+    let len = keyList.length
+    for (let i = 0; i < len; i++) {
+        let tempList: (number | string)[] = []
+        for (let j = 0; j < pictureData.value.length; j++) {
+            tempList.push(pictureData.value[j][keyList[i]])
         }
-        //将json列表转换成列表,dataSet存储最后的列表
-        let keyList: (keyof resType)[] = ['date', 'total_cost', 'total_kwh']
-        let len = keyList.length
-        let dataSet: (number | string)[][] = []
-        for (let i = 0; i < len; i++) {
-            let tempList: (number | string)[] = []
-            for (let j = 0; j < pictureData.value.length; j++) {
-                tempList.push(pictureData.value[j][keyList[i]])
-            }
-            dataSet.push(tempList)
-        }
-
-        init(dataSet)
+        dataSet.value.push(tempList)
     }
-    getPictureData()
-})
+    console.log(dataSet.value)
+    setOption(dataSet.value)
+}
+
+getPictureData()
 
 </script>  
 

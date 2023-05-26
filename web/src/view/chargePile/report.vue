@@ -51,7 +51,7 @@
                 <el-descriptions-item>
                     <template #label>
                         <div class="cell-item">
-                            充电桩累计充电度数
+                            充电桩累计充电度数(kw*h)
                         </div>
                     </template>
                     <div class="cell-item">
@@ -61,7 +61,7 @@
                 <el-descriptions-item>
                     <template #label>
                         <div class="cell-item">
-                            充电桩累计充电费用
+                            充电桩累计充电费用(￥)
                         </div>
                     </template>
                     <div class="cell-item">
@@ -71,7 +71,7 @@
                 <el-descriptions-item>
                     <template #label>
                         <div class="cell-item">
-                            充电桩累计服务费用
+                            充电桩累计服务费用(￥)
                         </div>
                     </template>
                     <div class="cell-item">
@@ -81,7 +81,7 @@
                 <el-descriptions-item>
                     <template #label>
                         <div class="cell-item">
-                            充电桩累计总费用
+                            充电桩累计总费用(￥)
                         </div>
                     </template>
                     <div class="cell-item">
