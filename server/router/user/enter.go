@@ -4,4 +4,5 @@ type RouterGroup struct {
 	UsersRouter
 	CarRouter
 	OrderRouter
+	ReportRouter
 }
