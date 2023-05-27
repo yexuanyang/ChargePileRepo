@@ -106,13 +106,13 @@
             </el-form>
             <el-table :data="tableData" border show-summary :summary-method="getSummaries"
                 style="width: 100%;display:inline-block;" :default-sort="{ prop: 'userId', order: 'descending' }">
-                <el-table-column align="left" label="日期" width="180" fixed prop="CreatedAt" sortable>
+                <el-table-column align="left" label="日期" width="180" fixed prop="CreatedAt">
                     <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
                 </el-table-column>
                 <el-table-column align="left" label="充电的车牌号" prop="carId" width="120" />
                 <el-table-column align="left" label="充电类型" prop="chargeType" width="120" />
                 <el-table-column align="left" label="充电费用" prop="chargeCost" width="120" />
-                <el-table-column align="left" label="充电度数" prop="kwh" width="120" fixed sortable />
+                <el-table-column align="left" label="充电度数" prop="kwh" width="120" fixed />
                 <el-table-column align="left" label="充电时长" width="180">
                     <template #default="scope">{{ scope.row.time }}</template>
                 </el-table-column>
@@ -124,7 +124,7 @@
                 <el-table-column align="left" label="结束充电时间" width="180">
                     <template #default="scope">{{ formatDate(scope.row.stopAt) }}</template>
                 </el-table-column>
-                <el-table-column align="left" label="总花费" prop="totalCost" width="120" fixed="right" sortable />
+                <el-table-column align="left" label="总花费" prop="totalCost" width="120" fixed="right" />
             </el-table>
 
             <div class="demo-pagination-block">
@@ -480,8 +480,6 @@ const getPictureData = async () => {
     // 用户选择了起始日期和结束日期就指定，否则默认一周
     const start = searchInfo.value.startCreatedAt == null ? lastWeek : searchInfo.value.startCreatedAt
     const end = searchInfo.value.endCreatedAt == null ? now : searchInfo.value.endCreatedAt
-    console.log(start)
-    console.log(end)
     const resData = await getDurationReportInfo({ date: start, endDate: end })
     if (resData.code == 0) {
         pictureData.value = resData.data
@@ -498,11 +496,51 @@ const getPictureData = async () => {
         }
         dataSet.value.push(tempList)
     }
-    console.log(dataSet.value)
     setOption(dataSet.value)
 }
 
 getPictureData()
+
+// 实现定时刷新内容
+
+//定时器变量 方便在页面销毁的时候清楚定时器
+const timer = ref<any>(null)
+//页面在刷新的时候可以加loading显示 方便页面展示
+const loading = ref(false)
+//使countdown定时增加 如果增加到我们想要的时间 也就是变量autoRefreshTime 执行刷新
+const countdown = ref(0)
+//定时刷新的时间 现在设置的为6 也就是6秒刷新一次数据
+const autoRefreshTime = ref(6)
+
+
+onMounted(() => {
+    timer.value = window.setInterval(() => {
+        //不loading的时候才会执行
+        if (!loading.value) {
+            //countdown小于我们想要的定时时间的时候 定时器也是一秒执行一次 就继续+1 
+            if (countdown.value < autoRefreshTime.value) {
+                countdown.value = countdown.value + 1
+                //当定时器到时间的时候 去干我们想干的事情 refresh()
+                if (countdown.value === autoRefreshTime.value) {
+                    refresh()
+                }
+            }
+        }
+    }, 1000)
+})
+
+const refresh = () => {
+    loading.value = true
+    //当然这里面可以重新获取你想要的数据，我就打印了一下
+    getTableData()
+    getPictureData()
+    //然后这个定时器可以不加，拿到想要的值后执行便可，即拿到数据后我们需要做的善后工作，重置初始值
+    setTimeout(() => {
+        loading.value = false
+        countdown.value = 0
+    }, 2000)
+}
+
 
 </script>  
 
