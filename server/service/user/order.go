@@ -13,6 +13,7 @@ type OrderService struct {
 // CreateOrder 创建Order记录
 // Author [piexlmax](https://github.com/piexlmax)
 func (orderService *OrderService) CreateOrder(order *user.Order) (err error) {
+
 	err = global.GVA_DB.Create(order).Error
 	return err
 }

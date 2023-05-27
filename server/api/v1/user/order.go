@@ -28,7 +28,13 @@ var orderService = service.ServiceGroupApp.UserServiceGroup.OrderService
 // @Router /order/createOrder [post]
 func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 	var order user.Order
+	claims, _ := utils.GetClaims(c)
+	if order.UserId == 0 {
+		order.UserId = int(claims.BaseClaims.ID)
+	}
 	err := c.ShouldBindJSON(&order)
+	order = user.Order(global.ChargeStations[0].Dispatch(global.Order(order)))
+
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -38,7 +44,6 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 		"CarId":      {utils.NotEmpty()},
 		"ChargeType": {utils.NotEmpty()},
 		"Kwh":        {utils.NotEmpty()},
-		"PileId":     {utils.NotEmpty()},
 		"StartedAt":  {utils.NotEmpty()},
 	}
 	if err := utils.Verify(order, verify); err != nil {
