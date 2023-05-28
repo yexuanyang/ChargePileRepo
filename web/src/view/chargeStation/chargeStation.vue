@@ -8,7 +8,7 @@
       <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间"></el-date-picker>
       </el-form-item>
         <el-form-item label="充电站位置">
-         <el-input v-model="searchInfo.positon" placeholder="搜索条件" />
+         <el-input v-model="searchInfo.position" placeholder="搜索条件" />
 
         </el-form-item>
         <el-form-item>
@@ -46,7 +46,7 @@
         <el-table-column align="left" label="创建日期" width="180" fixed>
             <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="充电站位置" prop="positon" width="120" />
+        <el-table-column align="left" label="充电站位置" prop="position" width="200" />
         <el-table-column align="center" label="按钮组" >
             <template #default="scope">
             <el-button type="primary" link icon="edit" class="table-button" @click="updateChargeStationFunc(scope.row)">变更</el-button>
@@ -68,8 +68,8 @@
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
       <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="200px">
-        <el-form-item label="充电站位置:"  prop="positon" >
-          <el-input v-model="formData.positon" :clearable="true"  placeholder="请输入" />
+        <el-form-item label="充电站位置:"  prop="position" >
+          <el-input v-model="formData.position" :clearable="true"  placeholder="请输入" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -105,12 +105,12 @@ import { ref, reactive } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
-        positon: '',
+        position: '',
         })
 
 // 验证规则
 const rule = reactive({
-  positon:[{
+  position:[{
     required:true,
     message:'请输入充电站位置',
   }],
@@ -266,7 +266,7 @@ const openDialog = () => {
 const closeDialog = () => {
     dialogFormVisible.value = false
     formData.value = {
-        positon: '',
+        position: '',
         }
 }
 // 弹窗确定

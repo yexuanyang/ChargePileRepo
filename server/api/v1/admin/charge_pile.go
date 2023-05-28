@@ -2,10 +2,10 @@ package admin
 
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/admin"
-	adminReq "github.com/flipped-aurora/gin-vue-admin/server/model/admin/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	adminReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
@@ -27,14 +27,13 @@ var chargePileService = service.ServiceGroupApp.AdminServiceGroup.ChargePileServ
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /chargePile/createChargePile [post]
 func (chargePileApi *ChargePileApi) CreateChargePile(c *gin.Context) {
-	var chargePile admin.ChargePile
+	var chargePile system.ChargePile
 	err := c.ShouldBindJSON(&chargePile)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 	verify := utils.Rules{
-		"IsOpen":    {utils.NotEmpty()},
 		"PileType":  {utils.NotEmpty()},
 		"StationId": {utils.NotEmpty()},
 	}
@@ -56,11 +55,11 @@ func (chargePileApi *ChargePileApi) CreateChargePile(c *gin.Context) {
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data body admin.ChargePile true "删除ChargePile"
+// @Param data body system.ChargePile true "删除ChargePile"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
 // @Router /chargePile/deleteChargePile [delete]
 func (chargePileApi *ChargePileApi) DeleteChargePile(c *gin.Context) {
-	var chargePile admin.ChargePile
+	var chargePile system.ChargePile
 	err := c.ShouldBindJSON(&chargePile)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -104,18 +103,17 @@ func (chargePileApi *ChargePileApi) DeleteChargePileByIds(c *gin.Context) {
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data body admin.ChargePile true "更新ChargePile"
+// @Param data body system.ChargePile true "更新ChargePile"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"更新成功"}"
 // @Router /chargePile/updateChargePile [put]
 func (chargePileApi *ChargePileApi) UpdateChargePile(c *gin.Context) {
-	var chargePile admin.ChargePile
+	var chargePile system.ChargePile
 	err := c.ShouldBindJSON(&chargePile)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 	verify := utils.Rules{
-		"IsOpen":    {utils.NotEmpty()},
 		"PileType":  {utils.NotEmpty()},
 		"StationId": {utils.NotEmpty()},
 	}
@@ -137,11 +135,11 @@ func (chargePileApi *ChargePileApi) UpdateChargePile(c *gin.Context) {
 // @Security ApiKeyAuth
 // @accept application/json
 // @Produce application/json
-// @Param data query admin.ChargePile true "用id查询ChargePile"
+// @Param data query system.ChargePile true "用id查询ChargePile"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
 // @Router /chargePile/findChargePile [get]
 func (chargePileApi *ChargePileApi) FindChargePile(c *gin.Context) {
-	var chargePile admin.ChargePile
+	var chargePile system.ChargePile
 	err := c.ShouldBindQuery(&chargePile)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)

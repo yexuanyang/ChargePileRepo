@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
@@ -54,6 +55,8 @@ func (orderService *OrderService) GetOrderInfoList(info userReq.OrderSearch) (li
 	// 创建db
 	db := global.GVA_DB.Model(&user.Order{})
 	var orders []user.Order
+	fmt.Println(info.StartCreatedAt)
+	fmt.Println(info.EndCreatedAt)
 	// 如果有条件搜索 下方会自动创建搜索语句
 	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
 		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
@@ -74,4 +77,10 @@ func (orderService *OrderService) GetOrderInfoList(info userReq.OrderSearch) (li
 
 	err = db.Limit(limit).Offset(offset).Find(&orders).Error
 	return orders, total, err
+}
+
+// GetOrderByUserId 根据user_id获取Order记录
+func (orderService *OrderService) GetOrderByUserId(id uint) (order user.Order, err error) {
+	err = global.GVA_DB.Where("user_id = ?", id).Find(&order).Error
+	return
 }
