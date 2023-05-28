@@ -9,7 +9,7 @@ import (
 // Order 结构体
 type Order struct {
 	global.GVA_MODEL
-	UserId      int       `json:"userId" form:"userId" gorm:"column:user_id;comment:订单所属的用户id;"`
+	UserId      int       `json:"userId,omitempty" form:"userId" gorm:"column:user_id;comment:订单所属的用户id;"`
 	CarId       string    `json:"carId" form:"carId" gorm:"column:car_id;comment:充电的车牌号;size:20;"`
 	ChargeType  string    `json:"chargeType" form:"chargeType" gorm:"column:charge_type;type:enum('快充','慢充','其他');comment:充电类型;"`
 	ChargeCost  float64   `json:"chargeCost" form:"chargeCost" gorm:"column:charge_cost;comment:;size:22;"`

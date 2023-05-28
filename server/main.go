@@ -21,6 +21,13 @@ import (
 // @name                        x-token
 // @BasePath                    /
 func main() {
+	// 初始化充电站
+	global.ChargeStations = make([]global.ChargeStation, global.ChargeStationNumber)
+	// 初始化充电站的等待区
+	for _, item := range global.ChargeStations {
+		item.Waiting.Cars = make([]global.Car, global.WaitingAreaSize)
+	}
+
 	global.GVA_VP = core.Viper() // 初始化Viper
 	initialize.OtherInit()
 	global.GVA_LOG = core.Zap() // 初始化zap日志库
