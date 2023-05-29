@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
@@ -31,21 +30,20 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 	var order user.Order
 	claims, err := utils.GetClaims(c)
 	err = c.ShouldBindJSON(&order)
-	fmt.Println(order.UserId)
 	if order.UserId == 0 {
 		order.UserId = int(claims.BaseClaims.ID)
 	}
+	err = ChargeStations[order.StationId].Waiting.Enqueue(GetCarInfoByOrder(order))
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+	order.State = "等待区"
 	verify := utils.Rules{
 		"UserId":     {utils.NotEmpty()},
 		"CarId":      {utils.NotEmpty()},
 		"ChargeType": {utils.NotEmpty()},
 		"Kwh":        {utils.NotEmpty()},
-		"PileId":     {utils.NotEmpty()},
-		"StartedAt":  {utils.NotEmpty()},
 	}
 	if err := utils.Verify(order, verify); err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -71,6 +69,12 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 func (orderApi *OrderApi) DeleteOrder(c *gin.Context) {
 	var order user.Order
 	err := c.ShouldBindJSON(&order)
+	claims, err := utils.GetClaims(c)
+	if order.UserId == 0 {
+		order.UserId = int(claims.BaseClaims.ID)
+	}
+	car := GetCarInfoByOrder(order)
+	ChargeStations[order.StationId].Waiting.Delete(car)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -122,6 +126,15 @@ func (orderApi *OrderApi) UpdateOrder(c *gin.Context) {
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
+	}
+	claims, err := utils.GetClaims(c)
+	if order.UserId == 0 {
+		order.UserId = int(claims.BaseClaims.ID)
+	}
+	updateCar := GetCarInfoByOrder(order)
+	err = ChargeStations[order.StationId].Waiting.Update(updateCar)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
 	}
 	verify := utils.Rules{
 		"UserId":     {utils.NotEmpty()},

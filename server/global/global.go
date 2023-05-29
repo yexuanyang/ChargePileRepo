@@ -1,11 +1,9 @@
 package global
 
 import (
-	"sync"
-	"time"
-
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/timer"
 	"github.com/songzhibin97/gkit/cache/local_cache"
+	"sync"
 
 	"golang.org/x/sync/singleflight"
 
@@ -31,59 +29,7 @@ var (
 
 	BlackCache local_cache.Cache
 	lock       sync.RWMutex
-	// 出现故障时调度算法
-	ErrorDispatch = map[int]string{0: "priorityDispatch", 1: "timeDispatch"}
-	// 调度算法
-	Dispatch = map[int]string{0: "default", 1: "singleDispatch", 2: "batchDispatch"}
-	// 充电模式
-	Mode           = map[string]int{"fast": 0, "slow": 1}
-	ChargeStations []ChargeStation
 )
-
-const (
-	// 充电站的数量
-	ChargeStationNumber = 2
-	// 等待区大小
-	WaitingAreaSize = 6
-	// 充电队列长度
-	ChargingQueueLen = 2
-	// 快充充电桩数量
-	FastChargingPileNum = 4
-	// 慢充充电桩数量
-	TrickleChargingPileNum = 2
-	// 快充功率
-	FastPower = 30
-	// 慢充功率
-	TrickPower = 7
-	// 服务费
-	ServiceCostRate = 0.8
-)
-
-type ChargeStation struct {
-	FastChargePiles      [FastChargingPileNum]ChargePile
-	TrickleChargingPiles [TrickleChargingPileNum]ChargePile
-	Waiting              WaitingBlock
-}
-
-type ChargePile struct {
-	WaitingTime float64
-	Mode        int
-	Cars        [ChargingQueueLen]Car
-	Length      int
-	FinishTime  time.Time
-}
-
-type Car struct {
-	CarId      string
-	ChargeTime float64
-	Mode       int
-	Energy     float64
-	QueueId    int
-}
-
-type WaitingBlock struct {
-	Cars []Car
-}
 
 // GetGlobalDBByDBName 通过名称获取db list中的db
 func GetGlobalDBByDBName(dbname string) *gorm.DB {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/user"
 	"go.uber.org/zap"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/core"
@@ -21,13 +22,6 @@ import (
 // @name                        x-token
 // @BasePath                    /
 func main() {
-	// 初始化充电站
-	global.ChargeStations = make([]global.ChargeStation, global.ChargeStationNumber)
-	// 初始化充电站的等待区
-	for _, item := range global.ChargeStations {
-		item.Waiting.Cars = make([]global.Car, global.WaitingAreaSize)
-	}
-
 	global.GVA_VP = core.Viper() // 初始化Viper
 	initialize.OtherInit()
 	global.GVA_LOG = core.Zap() // 初始化zap日志库
@@ -40,6 +34,14 @@ func main() {
 		// 程序结束前关闭数据库链接
 		db, _ := global.GVA_DB.DB()
 		defer db.Close()
+	}
+	// 初始化调度信息
+	user.InitStation()
+	for i := range user.ChargeStations {
+		go user.ChargeStations[i].Waiting.DispatchCar(&user.ChargeStations[i])
+		for j := range user.ChargeStations[i].ChargePiles {
+			go user.ChargeStations[i].ChargePiles[j].Charging()
+		}
 	}
 	core.RunWindowsServer()
 }

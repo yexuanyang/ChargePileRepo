@@ -20,6 +20,8 @@ type Order struct {
 	StartedAt   time.Time `json:"startedAt" form:"startedAt" gorm:"column:started_at;comment:;"`
 	StopAt      time.Time `json:"stopAt" form:"stopAt" gorm:"column:stop_at;comment:;"`
 	TotalCost   float64   `json:"totalCost" form:"totalCost" gorm:"column:total_cost;comment:;size:22;"`
+	State       string    `json:"state" gorm:"column:state;comment:根据车辆所在位置划分订单状态：等待区,队列区"`
+	StationId   int       `json:"stationId" gorm:"column:stationId;comment:充电站的id"`
 }
 
 // TableName Order 表名

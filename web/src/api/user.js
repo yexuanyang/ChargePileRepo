@@ -153,7 +153,7 @@ export const setUserAuthorities = (data) => {
 export const getUserInfo = () => {
   return service({
     url: '/user/getUserInfo',
-    method: 'get'
+    method: 'get',
   })
 }
 

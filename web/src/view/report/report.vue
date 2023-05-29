@@ -501,47 +501,6 @@ const getPictureData = async () => {
 
 getPictureData()
 
-// 实现定时刷新内容
-
-//定时器变量 方便在页面销毁的时候清楚定时器
-const timer = ref<any>(null)
-//页面在刷新的时候可以加loading显示 方便页面展示
-const loading = ref(false)
-//使countdown定时增加 如果增加到我们想要的时间 也就是变量autoRefreshTime 执行刷新
-const countdown = ref(0)
-//定时刷新的时间 现在设置的为6 也就是6秒刷新一次数据
-const autoRefreshTime = ref(6)
-
-
-onMounted(() => {
-    timer.value = window.setInterval(() => {
-        //不loading的时候才会执行
-        if (!loading.value) {
-            //countdown小于我们想要的定时时间的时候 定时器也是一秒执行一次 就继续+1 
-            if (countdown.value < autoRefreshTime.value) {
-                countdown.value = countdown.value + 1
-                //当定时器到时间的时候 去干我们想干的事情 refresh()
-                if (countdown.value === autoRefreshTime.value) {
-                    refresh()
-                }
-            }
-        }
-    }, 1000)
-})
-
-const refresh = () => {
-    loading.value = true
-    //当然这里面可以重新获取你想要的数据，我就打印了一下
-    getTableData()
-    getPictureData()
-    //然后这个定时器可以不加，拿到想要的值后执行便可，即拿到数据后我们需要做的善后工作，重置初始值
-    setTimeout(() => {
-        loading.value = false
-        countdown.value = 0
-    }, 2000)
-}
-
-
 </script>  
 
 <style scoped>
