@@ -44,7 +44,7 @@
         </el-table-column>
         <el-table-column align="left" label="充电桩id" prop="pileId" width="120"/>
         <el-table-column align="left" label="服务费" prop="serviceCost" width="120"/>
-        <el-table-column align="left" label="订单状态" prop="state" width="120"/>
+        <el-table-column align="left" label="订单状态" prop="state" width="120" fixed="right"/>
         <el-table-column align="left" label="开始充电时间" width="180">
           <template #default="scope">{{ formatDate(scope.row.startedAt) }}</template>
         </el-table-column>
@@ -54,7 +54,7 @@
         <el-table-column align="left" label="总花费" prop="totalCost" width="120"/>
         <el-table-column align="left" label="按钮组" fixed="right" width="110">
           <template #default="scope">
-            <el-button type="primary" link icon="edit" class="table-button" v-show="isFinished(scope.row.stopAt)"
+            <el-button type="primary" link icon="edit" class="table-button" v-show="isFinished(scope.row.stopAt) && scope.row.state === '等待区'"
                        @click="updateOrderFunc(scope.row)">变更
             </el-button>
           </template>
@@ -125,9 +125,10 @@ const formData = ref({
   pileId: 0,
   serviceCost: 0,
   startedAt: new Date(),
-  stopAt: new Date().setDate(Date.now() + 3600 * 1000 * 24),
+  stopAt: new Date(Date.now() + 3600 * 1000 * 24),
   totalCost: 0,
   stationId: 0,
+  state: '',
 })
 
 // 验证规则
@@ -329,6 +330,9 @@ const enterDialog = async () => {
     }
   })
 }
+
+
+
 </script>
 
 <style></style>

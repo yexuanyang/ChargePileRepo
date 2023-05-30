@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
+	"math"
 	"modernc.org/libc/limits"
 	"strconv"
 	"sync"
@@ -51,6 +52,33 @@ const (
 	ServiceCostRate = 0.8
 )
 
+type ChargeStation struct {
+	ChargePiles []ChargePile
+	Waiting     WaitingBlock
+}
+
+type ChargePile struct {
+	PileId      int
+	WaitingTime float64
+	Mode        int
+	Cars        []Car
+	FinishTime  time.Time
+	mu          sync.Mutex
+}
+
+type Car struct {
+	CarId      string
+	ChargeTime float64
+	Mode       int
+	Energy     float64
+	QueueId    int
+}
+
+type WaitingBlock struct {
+	Cars []Car
+	mu   sync.Mutex
+}
+
 func InitStation() {
 	ChargeStations = make([]ChargeStation, ChargeStationNumber)
 	for i := range ChargeStations {
@@ -88,7 +116,7 @@ func calculateFee(start, end time.Time, power float64) float64 {
 		}
 	}
 	// 计算剩下的分钟所用的费用
-	restHour := (end.Sub(start).Minutes() - subHours*60) / 60.0
+	restHour := math.Mod(end.Sub(start).Minutes(), 60.0)
 	if isPeakTime(end) {
 		fee += peakPrice * power * restHour
 	} else if isNormalTime(end) {
@@ -109,33 +137,6 @@ func isPeakTime(t time.Time) bool {
 func isNormalTime(t time.Time) bool {
 	hour := t.Hour()
 	return (hour >= normalStart && hour < normalEnd) && !isPeakTime(t)
-}
-
-type ChargeStation struct {
-	ChargePiles []ChargePile
-	Waiting     WaitingBlock
-}
-
-type ChargePile struct {
-	PileId      int
-	WaitingTime float64
-	Mode        int
-	Cars        []Car
-	FinishTime  time.Time
-	mu          sync.Mutex
-}
-
-type Car struct {
-	CarId      string
-	ChargeTime float64
-	Mode       int
-	Energy     float64
-	QueueId    int
-}
-
-type WaitingBlock struct {
-	Cars []Car
-	mu   sync.Mutex
 }
 
 // Enqueue 往充电桩的充电队列中加入汽车
@@ -170,7 +171,20 @@ func (chargePile *ChargePile) Charging() {
 		fmt.Printf("充电桩 %v 开始充电，充电汽车 %v\n", chargePile.PileId, car.CarId)
 		// 更新数据库订单中汽车开始充电时间
 		startTime := time.Now()
-		global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state = '队列区'", car.CarId).Update("started_at", startTime)
+		var currentOrder user.Order
+		// 找到符合条件的订单
+		for {
+			tx := global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state = '队列区'", car.CarId).First(&currentOrder)
+			if tx.RowsAffected != 0 {
+				// 找到一个就退出
+				break
+			}
+		}
+
+		currentOrder.StartedAt = startTime
+		global.GVA_DB.Save(&currentOrder)
+		fmt.Println("数据库修改完成，car_id = " + car.CarId + " 队列区赋予时间")
+
 		time.Sleep(chargeTime)
 		// 充电完毕，向等待区发送空闲信号
 		FreePileMutex.Lock()
@@ -183,12 +197,21 @@ func (chargePile *ChargePile) Charging() {
 		chargeCost := calculateFee(startTime, endTime, Power[chargePile.Mode])
 		serviceCost := car.ChargeTime * ServiceCostRate
 
-		fmt.Printf("充电桩 %v 开始充电，充电汽车 %v, 充电费用 %v\n", chargePile.PileId, chargeTime.String(), chargeCost)
+		fmt.Printf("充电桩 %v 结束充电，充电汽车 %v %v, 充电费用 %v\n", chargePile.PileId, car.CarId, chargeTime.String(), chargeCost)
 		// 更新数据库订单中汽车结束充电时间和充电费用
-		global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state = '队列区'", car.CarId).Updates(map[string]interface{}{
-			"stop_at": endTime, "total_cost": serviceCost + chargeCost, "service_cost": serviceCost,
-			"charge_cost": chargeCost, "state": "已完成",
-		})
+		for {
+			tx := global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state = '队列区'", car.CarId).First(&currentOrder)
+			if tx.RowsAffected != 0 {
+				break
+			}
+		}
+		currentOrder.StopAt = endTime
+		currentOrder.TotalCost = serviceCost + chargeCost
+		currentOrder.ServiceCost = serviceCost
+		currentOrder.ChargeCost = chargeCost
+		currentOrder.State = "已完成"
+		global.GVA_DB.Save(&currentOrder)
+		fmt.Println("数据库修改完成，car_id = " + car.CarId + " 队列区到已完成")
 	}
 }
 
@@ -272,22 +295,33 @@ func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation) {
 				}
 			}
 			if FreePile[minIndex] > 0 {
-				fmt.Printf("充电桩%d 剩余空闲 %d\n", minIndex, FreePile[minIndex])
-				// 充电桩空闲，将汽车取出等待区加入到充电队列
-				station.ChargePiles[minIndex].Enqueue(waitingBlock.Dequeue())
-				fmt.Printf("从等待区取出一辆汽车加入充电桩%d\n", minIndex)
+				// 更新数据库里面的订单信息
+				// 修改订单在数据库里面的状态，从等待区变成队列区
+				var currentOrder user.Order
+				for {
+					tx := global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state = '等待区'", currentCar.CarId).First(&currentOrder)
+					if tx.RowsAffected != 0 {
+						break
+					}
+				}
+				currentOrder.State = "队列区"
+				currentOrder.PileId = minIndex
+				currentOrder.Time = currentCar.ChargeTime
+				global.GVA_DB.Save(&currentOrder)
+				fmt.Println("修改数据库信息，等待区->队列区 car_id = " + currentCar.CarId)
+
 				// 增加充电桩队列的等待时间
 				station.ChargePiles[minIndex].WaitingTime += currentCar.ChargeTime
 
-				// 把空闲数量-1，加锁防止冲突
+				// 把空闲数量-1，加锁防止冲突;将汽车从等待区取出加入充电队列
 				FreePileMutex.Lock()
-				FreePile[minIndex] -= 1
-				FreePileMutex.Unlock()
 				fmt.Printf("充电桩%d 剩余空闲 %d\n", minIndex, FreePile[minIndex])
-				// 修改订单在数据库里面的状态，从等待区变成队列区
-				// 更新数据库里面的订单信息
-				global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state = '等待区'", currentCar.CarId).Updates(map[string]interface{}{"state": "队列区",
-					"pile_id": minIndex, "time": currentCar.ChargeTime})
+				FreePile[minIndex] -= 1
+				fmt.Printf("从等待区取出一辆汽车加入充电桩%d\n", minIndex)
+				station.ChargePiles[minIndex].Enqueue(waitingBlock.Dequeue())
+				fmt.Printf("充电桩%d 剩余空闲 %d\n", minIndex, FreePile[minIndex])
+				FreePileMutex.Unlock()
+
 			}
 		}
 	}
