@@ -40,7 +40,7 @@
         <el-table-column align="left" label="充电费用" prop="chargeCost" width="120"/>
         <el-table-column align="left" label="充电度数" prop="kwh" width="120"/>
         <el-table-column align="left" label="充电时长" width="180">
-          <template #default="scope">{{ scope.row.time }} min</template>
+          <template #default="scope">{{ scope.row.time }} 小时</template>
         </el-table-column>
         <el-table-column align="left" label="充电桩id" prop="pileId" width="120"/>
         <el-table-column align="left" label="服务费" prop="serviceCost" width="120"/>
@@ -53,10 +53,11 @@
         </el-table-column>
         <el-table-column align="left" label="总花费" prop="totalCost" width="120"/>
         <el-table-column align="left" label="按钮组" fixed="right" width="110">
-          <template #default="scope">
-            <el-button type="primary" link icon="edit" class="table-button" v-show="isFinished(scope.row.stopAt) && scope.row.state === '等待区'"
-                       @click="updateOrderFunc(scope.row)">变更
-            </el-button>
+          <template #default="scope" >
+              <el-button type="primary" link icon="edit" class="table-button"
+                         @click="updateOrderFunc(scope.row)" v-show="isFinished(scope.row.stopAt) && scope.row.state === '等待区'">变更
+              </el-button>
+              <el-button type="primary" link icon="delete" @click="deleteRow(scope.row)" v-show="isFinished(scope.row.stopAt)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -169,7 +170,7 @@ const elFormRef = ref()
 const isFinished = (stopAt) => {
   const now = new Date().getTime()
   const stopAtTime = new Date(stopAt).getTime()
-  return stopAtTime < now ? false : true
+  return !(stopAtTime < now)
 }
 
 // =========== 表格控制部分 ===========
