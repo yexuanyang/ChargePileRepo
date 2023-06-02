@@ -145,7 +145,7 @@ const editFileNameFunc = async(row) => {
     }
   }).catch(() => {
     ElMessage({
-      type: 'info',
+      type: 'Info',
       message: '取消修改'
     })
   })

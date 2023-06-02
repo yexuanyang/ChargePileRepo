@@ -456,7 +456,7 @@ const closeDialog = () => {
     formData.value = {
         isOpen: false,
         chargeCount: 0,
-        stationId: 0,
+        stationId: null,
         electricity: 0,
         chargeTime: 0,
     }

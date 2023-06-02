@@ -42,6 +42,7 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 		return
 	}
 	order.State = "等待区"
+
 	verify := utils.Rules{
 		"UserId":     {utils.NotEmpty()},
 		"CarId":      {utils.NotEmpty()},
@@ -52,6 +53,7 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+	order.Kwh = 0
 	if err := orderService.CreateOrder(&order); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
@@ -94,11 +96,7 @@ func (orderApi *OrderApi) DeleteOrder(c *gin.Context) {
 			return
 		}
 	} else if order.State == "队列区" {
-		// todo bug时出现时不出现，待考察
 		currentPile := ChargeStations[stationId].ChargePiles[order.PileId]
-		fmt.Println(order.PileId)
-		fmt.Println(currentPile)
-		fmt.Println(currentPile.Cars)
 		if order.CarId == currentPile.Cars[0].CarId {
 			// 该汽车正在充电
 			currentPile.mu.Lock()
@@ -186,11 +184,13 @@ func (orderApi *OrderApi) UpdateOrder(c *gin.Context) {
 	if order.UserId == 0 {
 		order.UserId = int(claims.BaseClaims.ID)
 	}
-	updateCar := GetCarInfoByOrder(order)
-	err = ChargeStations[order.StationId-1].Waiting.Update(updateCar)
-	if err != nil {
-		response.FailWithMessage(err.Error(), c)
-		return
+	if order.ID == 0 {
+		updateCar := GetCarInfoByOrder(order)
+		err = ChargeStations[order.StationId-1].Waiting.Update(updateCar)
+		if err != nil {
+			response.FailWithMessage(err.Error(), c)
+			return
+		}
 	}
 	verify := utils.Rules{
 		"UserId":     {utils.NotEmpty()},

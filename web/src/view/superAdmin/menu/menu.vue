@@ -383,7 +383,7 @@ const deleteMenu = (ID) => {
     })
     .catch(() => {
       ElMessage({
-        type: 'info',
+        type: 'Info',
         message: '已取消删除'
       })
     })

@@ -4,14 +4,14 @@
     v-if="!routerInfo.hidden"
     :is-collapse="isCollapse"
     :theme="theme"
-    :router-info="routerInfo"
+    :router-Info="routerInfo"
   >
     <template v-if="routerInfo.children&&routerInfo.children.length">
       <AsideComponent
         v-for="item in routerInfo.children"
         :key="item.name"
         :is-collapse="false"
-        :router-info="item"
+        :router-Info="item"
         :theme="theme"
       />
     </template>

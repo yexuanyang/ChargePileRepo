@@ -42,6 +42,7 @@
         <el-table-column align="left" label="充电时长" width="180">
           <template #default="scope">{{ scope.row.time }} 小时</template>
         </el-table-column>
+        <el-table-column align="left" label="充电站id" prop="stationId" width="120"/>
         <el-table-column align="left" label="充电桩id" prop="pileId" width="120"/>
         <el-table-column align="left" label="服务费" prop="serviceCost" width="120"/>
         <el-table-column align="left" label="订单状态" prop="state" width="120" fixed="right"/>

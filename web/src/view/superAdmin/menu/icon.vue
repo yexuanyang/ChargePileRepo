@@ -582,8 +582,8 @@ const options = reactive([
     'label': 'iphone',
   },
   {
-    'key': 'info-filled',
-    'label': 'info-filled',
+    'key': 'Info-filled',
+    'label': 'Info-filled',
   },
   {
     'key': 'link',
@@ -606,8 +606,8 @@ const options = reactive([
     'label': 'lollipop',
   },
   {
-    'key': 'location-information',
-    'label': 'location-information',
+    'key': 'location-Information',
+    'label': 'location-Information',
   },
   {
     'key': 'lock',

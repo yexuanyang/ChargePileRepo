@@ -16,8 +16,7 @@ type IsOpenRequest struct {
 }
 
 // UpdateChargePileByIds 根据ID更新数据库开关
-func (PileManageApi) UpdateChargePileByIds(c *gin.Context) {
-	// todo 在这个地方增加逻辑，实现充电桩关闭时，对应的线程充电桩线程中断;充电桩开启时，对应的充电桩线程启动
+func (PileManageApi) UpdateChargePileByIds(c *gin.Context) { //todo 故障调度还是有bug
 	var cr IsOpenRequest
 	err := c.ShouldBindJSON(&cr)
 	if err != nil {
@@ -31,11 +30,12 @@ func (PileManageApi) UpdateChargePileByIds(c *gin.Context) {
 		for _, pile := range chargePileList {
 			// 在这个充电桩所在的站点寻找这个充电桩
 			for _, pile1 := range user.ChargeStations[pile.StationID-1].ChargePiles {
-				if pile1.Id == int(pile.ID) {
+				if pile1.PileId == int(pile.ID) {
 					// 中断这个充电桩的充电过程
 					user.IsInterrupt[pile.StationID-1][pile1.PileId] = true
 					// 关闭这个充电桩
 					user.IsOpen[pile.StationID-1][pile1.PileId] = false
+					break
 				}
 			}
 		}
@@ -43,9 +43,9 @@ func (PileManageApi) UpdateChargePileByIds(c *gin.Context) {
 		fmt.Println("enter open")
 		// 遍历选中的充电桩
 		for _, pile := range chargePileList {
-			// 在这个充电桩所在的站点寻找这个充电桩
+			// 在这个充电桩所在的站点寻找这个充电桩,在数据库中的id一致
 			for _, pile1 := range user.ChargeStations[pile.StationID-1].ChargePiles {
-				if pile1.Id == int(pile.ID) {
+				if pile1.PileId == int(pile.ID) {
 					// 打开这个充电桩
 					user.IsOpen[pile.StationID-1][pile1.PileId] = true
 					fmt.Println("open")

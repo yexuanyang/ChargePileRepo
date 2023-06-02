@@ -11,15 +11,15 @@
           <p class="login_panel_form_title_p">{{ $GIN_VUE_ADMIN.appName }}</p>
         </div>
         <el-form
-          ref="loginForm"
-          :model="loginFormData"
+          ref="logInform"
+          :model="logInformData"
           :rules="rules"
           :validate-on-rule-change="false"
           @keyup.enter="submitForm"
         >
           <el-form-item prop="username">
             <el-input
-              v-model="loginFormData.username"
+              v-model="logInformData.username"
               size="large"
               placeholder="请输入用户名"
               suffix-icon="user"
@@ -27,17 +27,17 @@
           </el-form-item>
           <el-form-item prop="password">
             <el-input
-              v-model="loginFormData.password"
+              v-model="logInformData.password"
               show-password
               size="large"
               type="password"
               placeholder="请输入密码"
             />
           </el-form-item>
-          <el-form-item v-if="loginFormData.openCaptcha" prop="captcha">
+          <el-form-item v-if="logInformData.openCaptcha" prop="captcha">
             <div class="vPicBox">
               <el-input
-                v-model="loginFormData.captcha"
+                v-model="logInformData.captcha"
                 placeholder="请输入验证码"
                 size="large"
                 style="flex:1;padding-right: 20px;"
@@ -136,16 +136,16 @@ const loginVerify = () => {
       trigger: 'blur',
     })
     picPath.value = ele.data.picPath
-    loginFormData.captchaId = ele.data.captchaId
-    loginFormData.openCaptcha = ele.data.openCaptcha
+    logInformData.captchaId = ele.data.captchaId
+    logInformData.openCaptcha = ele.data.openCaptcha
   })
 }
 loginVerify()
 
 // 登录相关操作
-const loginForm = ref(null)
+const logInform = ref(null)
 const picPath = ref('')
-const loginFormData = reactive({
+const logInformData = reactive({
   username: 'admin',
   password: '123456',
   captcha: '',
@@ -165,10 +165,10 @@ const rules = reactive({
 
 const userStore = useUserStore()
 const login = async() => {
-  return await userStore.LoginIn(loginFormData)
+  return await userStore.LoginIn(logInformData)
 }
 const submitForm = () => {
-  loginForm.value.validate(async(v) => {
+  logInform.value.validate(async(v) => {
     if (v) {
       const flag = await login()
       if (!flag) {
@@ -195,7 +195,7 @@ const checkInit = async() => {
       router.push({ name: 'Init' })
     } else {
       ElMessage({
-        type: 'info',
+        type: 'Info',
         message: '已配置数据库信息，无法初始化',
       })
     }

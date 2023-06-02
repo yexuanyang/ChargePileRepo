@@ -47,24 +47,24 @@ func (orderService *OrderService) GetOrder(id uint) (order user.Order, err error
 
 // GetOrderInfoList 分页获取Order记录
 // Author [piexlmax](https://github.com/piexlmax)
-func (orderService *OrderService) GetOrderInfoList(info userReq.OrderSearch) (list []user.Order, total int64, err error) {
-	limit := info.PageSize
-	offset := info.PageSize * (info.Page - 1)
+func (orderService *OrderService) GetOrderInfoList(Info userReq.OrderSearch) (list []user.Order, total int64, err error) {
+	limit := Info.PageSize
+	offset := Info.PageSize * (Info.Page - 1)
 	// 创建db
 	db := global.GVA_DB.Model(&user.Order{})
 	var orders []user.Order
 	// 如果有条件搜索 下方会自动创建搜索语句
-	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
-		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
+	if Info.StartCreatedAt != nil && Info.EndCreatedAt != nil {
+		db = db.Where("created_at BETWEEN ? AND ?", Info.StartCreatedAt, Info.EndCreatedAt)
 	}
-	if info.CarId != "" {
-		db = db.Where("car_id LIKE ?", "%"+info.CarId+"%")
+	if Info.CarId != "" {
+		db = db.Where("car_id LIKE ?", "%"+Info.CarId+"%")
 	}
-	if info.ChargeType != "" {
-		db = db.Where("charge_type = ?", info.ChargeType)
+	if Info.ChargeType != "" {
+		db = db.Where("charge_type = ?", Info.ChargeType)
 	}
-	if info.UserId != 0 {
-		db = db.Where("user_id = ?", info.UserId)
+	if Info.UserId != 0 {
+		db = db.Where("user_id = ?", Info.UserId)
 	}
 	err = db.Count(&total).Error
 	if err != nil {

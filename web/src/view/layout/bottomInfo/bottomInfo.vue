@@ -1,5 +1,5 @@
 <template>
-  <div class="bottom-info">
+  <div class="bottom-Info">
     <div>
       <span>Powered by</span>
       <span>
@@ -23,7 +23,7 @@ export default {
 </script>
 
 <style lang="scss">
-.bottom-info {
+.bottom-Info {
   color: #888;
   height: 30px;
   line-height: 12px;
