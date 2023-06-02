@@ -29,11 +29,13 @@ var (
 	FreePile      [][]int
 	FreePileMutex []sync.Mutex
 	// IsInterrupt 用来处理前端发送的取消订单操作,IsInterrupt[0][1] = true 表示第1个充电站的第2个充电桩需要提前中断充电
-	IsInterrupt = make([][]bool, 0)
+	IsInterrupt [][]bool
 	// CarNum 等待区汽车数量 CarNum[1][1] = 2表示充电站2的等待区中有2辆慢充汽车 CarNum[1][0] = 3 表示充电站2的等待区有3辆快充汽车
 	CarNum [][]int
 	// QueuePrefix 队列号前缀，根据充电类型区分
 	QueuePrefix = []string{0: "F", 1: "T"}
+	// IsOpen 处理充电桩关闭的操作,IsOpen[0][2] = true表示第一个充电站的第三个充电桩开启
+	IsOpen [][]bool
 
 	chargeStationService = service.ServiceGroupApp.AdminServiceGroup.ChargeStationService
 	chargePileService    = service.ServiceGroupApp.AdminServiceGroup.ChargePileService
@@ -55,10 +57,6 @@ const (
 	WaitingAreaSize = 6
 	// ChargingQueueLen 充电队列长度
 	ChargingQueueLen = 2
-	// FastChargingPileNum 快充充电桩数量
-	FastChargingPileNum = 4
-	// TrickleChargingPileNum 慢充充电桩数量
-	TrickleChargingPileNum = 2
 	// ServiceCostRate 服务费
 	ServiceCostRate = 0.8
 )
@@ -71,7 +69,7 @@ type ChargeStation struct {
 
 type ChargePile struct {
 	StationId   int
-	PileId      int
+	PileId      int // 存储在充电站中的id位置，从0开始编号
 	Id          int //存储在数据库中的id位置
 	WaitingTime float64
 	Mode        int
@@ -111,6 +109,7 @@ func InitStation() {
 		CarNum[i] = make([]int, 2)
 	}
 	IsInterrupt = make([][]bool, number)
+	IsOpen = make([][]bool, number)
 
 	// 初始化充电站中充电桩列表
 	for i := range ChargeStations {
@@ -126,9 +125,7 @@ func InitStation() {
 	chargePileList, _, _ := chargePileService.GetChargePileInfoList(request.ChargePileSearch{})
 	// 遍历充电桩列表，从中获取初始化充电桩的信息
 	for _, chargePile := range chargePileList {
-		if !chargePile.IsOpen {
-			continue
-		}
+
 		stationIndex := chargePile.StationID - 1
 		pile := ChargePile{}
 		// 充电桩的PileId存储在充电站内的下标
@@ -149,6 +146,15 @@ func InitStation() {
 
 		// 每加入一个充电桩都需要增加一个新的IsInterrupt标志
 		IsInterrupt[stationIndex] = append(IsInterrupt[stationIndex], false)
+
+		// 不管充电桩开没开都要初始化一个线程
+		// 没开的充电桩初始化的时候IsOpen是false
+		if chargePile.IsOpen {
+			IsOpen[stationIndex] = append(IsOpen[stationIndex], true)
+		} else {
+			IsOpen[stationIndex] = append(IsOpen[stationIndex], false)
+		}
+
 	}
 
 }
@@ -211,12 +217,37 @@ func (chargePile *ChargePile) Dequeue() (car Car) {
 }
 
 // Charging 充电桩线程运行的程序，从充电队列中取出汽车开始充电
-func (chargePile *ChargePile) Charging(station *ChargeStation, group *sync.WaitGroup) {
+func (chargePile *ChargePile) Charging(station *ChargeStation) {
 	for {
-		// 从充电队列中取出汽车
+		// 查看是否有车在充电队列，没有车就空闲（不论充电桩是否开启）
+		// 没车，等一段时间之后再次查询是否有车
 		if len(chargePile.Cars) == 0 {
+			time.Sleep(3 * time.Second)
 			continue
 		}
+
+		// 充电桩关闭（或者充电桩故障），提前退出充电
+		// 退出充电的时候要采用故障调度，直接将等待区拷贝出来，然后将故障队列的车放到等待区，同时将等待区上锁不允许车辆加入，等到故障队列的车都调度完毕之后将原来的等待区复制回来并解锁
+		if !IsOpen[station.StationId][chargePile.PileId] {
+			station.Waiting.mu.Lock()
+			wBlock := station.Waiting
+			station.Waiting.Cars = chargePile.Cars
+			for {
+				if len(station.Waiting.Cars) == 0 {
+					break
+				}
+			}
+			station.Waiting = wBlock
+			station.Waiting.mu.Unlock()
+			// 故障队列调度完毕，充电桩进入阻塞，每5s查询一次充电桩是否开启
+			for {
+				if IsOpen[station.StationId][chargePile.PileId] {
+					break
+				}
+				time.Sleep(5 * time.Second)
+			}
+		}
+
 		car := chargePile.Cars[0]
 		chargeTime, _ := time.ParseDuration(strconv.FormatFloat(car.ChargeTime, 'f', 5, 64) + "h")
 		fmt.Printf("充电桩 %v 开始充电，充电汽车 %v\n", chargePile.PileId, car.CarId)
@@ -263,7 +294,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation, group *sync.WaitG
 		global.GVA_DB.Save(&currentOrder)
 		fmt.Println("数据库修改完成，car_id = " + car.CarId + " 队列区到已完成")
 	}
-	group.Done()
+
 }
 
 // Dequeue 从等待区汽车队列中取出一辆汽车
@@ -280,7 +311,10 @@ func (waitingBlock *WaitingBlock) Dequeue() (car Car) {
 
 // Enqueue 将汽车加入等待区
 func (waitingBlock *WaitingBlock) Enqueue(car Car) error {
-	waitingBlock.mu.Lock()
+	hasLock := waitingBlock.mu.TryLock()
+	if !hasLock {
+		return errors.New("系统繁忙，请稍后再试")
+	}
 	defer waitingBlock.mu.Unlock()
 	if len(waitingBlock.Cars) < WaitingAreaSize {
 		waitingBlock.Cars = append(waitingBlock.Cars, car)
@@ -330,7 +364,7 @@ func (waitingBlock *WaitingBlock) Update(car Car) error {
 }
 
 // DispatchCar 等待区线程执行的程序,等待区的汽车持续向充电汽车请求加入汽车
-func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation, group *sync.WaitGroup) {
+func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation) {
 	for {
 		var minIndex int
 		var min float64
@@ -353,13 +387,14 @@ func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation, group *syn
 				min = float64(limits.INT_MAX)
 				// 判断应该加入哪一个充电桩
 				for i, pile := range station.ChargePiles {
-					if pile.WaitingTime < min && pile.Mode == currentCar.Mode {
+					// 满足三个条件：充电模式匹配、充电时间最短、充电桩开启
+					if pile.WaitingTime < min && pile.Mode == currentCar.Mode && IsOpen[station.StationId][pile.PileId] {
 						min = pile.WaitingTime
 						minIndex = i
 					}
 				}
 
-				if FreePile[station.StationId][minIndex] > 0 {
+				if minIndex != limits.INT_MAX && FreePile[station.StationId][minIndex] > 0 {
 					// 更新数据库里面的订单信息
 					// 修改订单在数据库里面的状态，从等待区变成队列区
 					CarNum[currentCar.Mode][station.StationId] -= 1
@@ -396,7 +431,6 @@ func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation, group *syn
 		// 每5s请求一次
 		time.Sleep(5 * time.Second)
 	}
-	group.Done()
 }
 
 // GetCarInfoByOrder 从订单中获取车辆信息

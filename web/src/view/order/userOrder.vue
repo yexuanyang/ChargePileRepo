@@ -74,7 +74,7 @@
         </el-form-item>
         <el-form-item label="充电类型:" prop="chargeType">
           <el-select v-model="formData.chargeType" placeholder="请选择" style="width:100%" :clearable="true">
-            <el-option v-for="item in ['快充', '慢充', '其他']" :key="item" :label="item" :value="item"/>
+            <el-option v-for="item in ['快充', '慢充']" :key="item" :label="item" :value="item"/>
           </el-select>
         </el-form-item>
         <el-form-item label="充电度数:" prop="kwh">

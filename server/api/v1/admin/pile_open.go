@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"fmt"
+	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/user"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
@@ -25,11 +27,31 @@ func (PileManageApi) UpdateChargePileByIds(c *gin.Context) {
 	var chargePileList []system.ChargePile
 	err = global.GVA_DB.Model(system.ChargePile{}).Find(&chargePileList, cr.Ids).Update("is_open", cr.IsOpen).Error
 	if !cr.IsOpen {
-		// todo 关闭充电桩，需要关闭对应的充电桩线程
-
+		// 遍历关闭的每一个充电桩
+		for _, pile := range chargePileList {
+			// 在这个充电桩所在的站点寻找这个充电桩
+			for _, pile1 := range user.ChargeStations[pile.StationID-1].ChargePiles {
+				if pile1.Id == int(pile.ID) {
+					// 中断这个充电桩的充电过程
+					user.IsInterrupt[pile.StationID-1][pile1.PileId] = true
+					// 关闭这个充电桩
+					user.IsOpen[pile.StationID-1][pile1.PileId] = false
+				}
+			}
+		}
 	} else {
-		// todo 开启充电桩，需要开启对应的充电桩线程
-
+		fmt.Println("enter open")
+		// 遍历选中的充电桩
+		for _, pile := range chargePileList {
+			// 在这个充电桩所在的站点寻找这个充电桩
+			for _, pile1 := range user.ChargeStations[pile.StationID-1].ChargePiles {
+				if pile1.Id == int(pile.ID) {
+					// 打开这个充电桩
+					user.IsOpen[pile.StationID-1][pile1.PileId] = true
+					fmt.Println("open")
+				}
+			}
+		}
 	}
 	if err != nil {
 		response.FailWithMessage("更新数据库失败", c)
