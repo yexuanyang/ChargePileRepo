@@ -149,7 +149,14 @@
                     <el-input v-model.number="formData.chargeCount" :clearable="true" placeholder="请输入"/>
                 </el-form-item>
                 <el-form-item label="充电站的ID:" prop="stationId">
-                    <el-input v-model.number="formData.stationId" :clearable="true" placeholder="请输入"/>
+                  <el-select v-model.number="formData.stationId" placeholder="请选择">
+                    <el-option
+                        v-for="item in stationOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value"
+                    />
+                  </el-select>
                 </el-form-item>
                 <el-form-item label="充电桩累计充电电量（度）:" prop="electricity">
                     <el-input-number
@@ -199,16 +206,16 @@ import {
 import {getDictFunc, formatDate, formatBoolean, filterDict} from '@/utils/format'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {ref, reactive} from 'vue'
+import {findChargeStation, getChargeStationList} from "@/api/chargeStation";
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
     isOpen: false,
     chargeCount: 0,
-    stationId: 0,
+    stationId: null,
     electricity: 0,
     chargeTime: 0,
 })
-console.log(formData)
 // 验证规则
 const rule = reactive({
     isOpen: [{
@@ -240,17 +247,18 @@ const pileOptions = [
     }
 ]
 
-// 站点选项
-const stationOptions = [
-    {
-        value: '1',
-        label: '站点一'
-    },
-    {
-        value: '2',
-        label: '站点二'
-    }
-]
+// 从数据库获取站点选项
+const stationOptions = ref([])
+const getStationOptions = async ()=>{
+  const res = await getChargeStationList()
+  if(res.code === 0){
+    res.data.list.forEach((item)=>{
+      stationOptions.value.push({value: item.ID, label: item.position})
+    })
+  }
+}
+getStationOptions()
+
 const elFormRef = ref()
 
 // =========== 表格控制部分 ===========
@@ -291,7 +299,6 @@ const handleCurrentChange = (val) => {
 // 查询
 const getTableData = async () => {
     const res = await getChargePileList({page: page.value, pageSize: pageSize.value, ...searchInfo.value})
-    console.log(res)
     if (res.code === 0) {
         tableData.value = res.data.list
         total.value = res.data.total

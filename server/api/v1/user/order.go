@@ -34,7 +34,9 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 	if order.UserId == 0 {
 		order.UserId = int(claims.BaseClaims.ID)
 	}
-	err = ChargeStations[order.StationId].Waiting.Enqueue(GetCarInfoByOrder(order))
+	car := GetCarInfoByOrder(order)
+	err = ChargeStations[order.StationId-1].Waiting.Enqueue(car)
+
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -69,6 +71,7 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 // @Router /order/deleteOrder [delete]
 func (orderApi *OrderApi) DeleteOrder(c *gin.Context) {
 	var order user.Order
+
 	err := c.ShouldBindJSON(&order)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -80,16 +83,21 @@ func (orderApi *OrderApi) DeleteOrder(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+	car := GetCarInfoByOrder(order)
+	CarNum[order.StationId-1][car.Mode] -= 1
+	stationId := order.StationId - 1
 	if order.State == "等待区" {
 		// 将汽车从等待区中移除,订单在数据库中也删除
-		car := GetCarInfoByOrder(order)
 		err = ChargeStations[order.StationId].Waiting.Delete(car)
 		if err != nil {
 			response.FailWithMessage(err.Error(), c)
 			return
 		}
 	} else if order.State == "队列区" {
-		currentPile := &ChargeStations[order.StationId].ChargePiles[order.PileId]
+		// todo bug时出现时不出现，待考察
+		currentPile := ChargeStations[stationId].ChargePiles[order.PileId]
+		fmt.Println(order.PileId)
+		fmt.Println(currentPile)
 		fmt.Println(currentPile.Cars)
 		if order.CarId == currentPile.Cars[0].CarId {
 			// 该汽车正在充电
@@ -98,12 +106,12 @@ func (orderApi *OrderApi) DeleteOrder(c *gin.Context) {
 
 			currentPile.Cars = append(currentPile.Cars[:0], currentPile.Cars[1:]...) // 将汽车移除
 
-			FreePileMutex.Lock()
-			defer FreePileMutex.Unlock()
-			FreePile[order.PileId] += 1 // 空闲位置+1
+			FreePileMutex[stationId].Lock()
+			defer FreePileMutex[stationId].Unlock()
+			FreePile[stationId][order.PileId] += 1 // 空闲位置+1
 
 			// 向指定的充电桩线程发送提前结束充电请求
-			IsInterrupt[order.PileId] = true
+			IsInterrupt[stationId][order.PileId] = true
 			// 数据库中的订单不需要删除
 			// 向前端返回成功即可
 			response.OkWithMessage("删除成功", c)
@@ -116,9 +124,9 @@ func (orderApi *OrderApi) DeleteOrder(c *gin.Context) {
 
 			currentPile.Cars = append(currentPile.Cars[:1], currentPile.Cars[2:]...) // 将汽车移除
 
-			FreePileMutex.Lock()
-			defer FreePileMutex.Unlock()
-			FreePile[order.PileId] += 1 // 空闲位置+1
+			FreePileMutex[stationId].Lock()
+			defer FreePileMutex[stationId].Unlock()
+			FreePile[stationId][order.PileId] += 1 // 空闲位置+1
 		}
 	}
 
@@ -179,7 +187,7 @@ func (orderApi *OrderApi) UpdateOrder(c *gin.Context) {
 		order.UserId = int(claims.BaseClaims.ID)
 	}
 	updateCar := GetCarInfoByOrder(order)
-	err = ChargeStations[order.StationId].Waiting.Update(updateCar)
+	err = ChargeStations[order.StationId-1].Waiting.Update(updateCar)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return

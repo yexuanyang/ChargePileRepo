@@ -68,6 +68,6 @@ func (chargePileService *ChargePileService) GetChargePileInfoList(info adminReq.
 		return
 	}
 
-	err = db.Limit(limit).Offset(offset).Find(&chargePiles).Error
+	err = db.Limit(limit).Offset(offset).Find(&chargePiles).Order("station_id").Error
 	return chargePiles, total, err
 }

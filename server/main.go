@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/user"
 	"go.uber.org/zap"
+	"sync"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/core"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -37,11 +38,25 @@ func main() {
 	}
 	// 初始化调度信息
 	user.InitStation()
+	var wg sync.WaitGroup
+	//var ctx context.Context
+	wg.Add(user.ChargeStationNumber + user.FastChargingPileNum + user.TrickleChargingPileNum)
 	for i := range user.ChargeStations {
-		go user.ChargeStations[i].Waiting.DispatchCar(&user.ChargeStations[i])
+		//go func() {
+		//	for {
+		//		select {
+		//		case <-ctx.Done():
+		//				return
+		//		default:
+		//			user.ChargeStations[i].Waiting.DispatchCar(&user.ChargeStations[i], &wg)
+		//		}
+		//	}
+		//}()
+		go user.ChargeStations[i].Waiting.DispatchCar(&user.ChargeStations[i], &wg)
 		for j := range user.ChargeStations[i].ChargePiles {
-			go user.ChargeStations[i].ChargePiles[j].Charging()
+			go user.ChargeStations[i].ChargePiles[j].Charging(&user.ChargeStations[i], &wg)
 		}
 	}
 	core.RunWindowsServer()
+	wg.Wait()
 }

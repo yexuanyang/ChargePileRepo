@@ -81,7 +81,14 @@
           <el-input-number v-model="formData.kwh" style="width:100%" :precision="2" :clearable="true"/>
         </el-form-item>
         <el-form-item label="充电站ID:" prop="stationId">
-          <el-input-number v-model="formData.stationId" style="width:100%" :step="1" :min="0" :clearable="true"/>
+          <el-select v-model.number="formData.stationId" placeholder="请选择">
+            <el-option
+                v-for="item in stationOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -116,6 +123,7 @@ import {now} from '@vueuse/shared';
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {toRef} from 'vue';
 import {ref, reactive, computed} from 'vue'
+import {getChargeStationList} from "@/api/chargeStation";
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
@@ -128,7 +136,7 @@ const formData = ref({
   startedAt: new Date(),
   stopAt: new Date(Date.now() + 3600 * 1000 * 24),
   totalCost: 0,
-  stationId: 0,
+  stationId: null,
   state: '',
 })
 
@@ -163,6 +171,19 @@ const rule = reactive({
     trigger: ['input', 'blue'],
   }],
 })
+
+// 从数据库获取站点选项
+const stationOptions = ref([])
+const getStationOptions = async ()=>{
+  const res = await getChargeStationList()
+  if(res.code === 0){
+    res.data.list.forEach((item)=>{
+      stationOptions.value.push({value: item.ID, label: item.position})
+    })
+  }
+}
+getStationOptions()
+
 
 const elFormRef = ref()
 
@@ -295,12 +316,14 @@ const closeDialog = () => {
     carId: '',
     chargeCost: 0,
     kwh: 0,
-    time: new Date(),
+    time: 0,
     pileId: 0,
     serviceCost: 0,
     startedAt: new Date(),
-    stopAt: new Date(),
+    stopAt: new Date(Date.now() + 3600 * 1000 * 24),
     totalCost: 0,
+    stationId: null,
+    state: '',
   }
 }
 // 弹窗确定
