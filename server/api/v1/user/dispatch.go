@@ -241,13 +241,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 		}
 		// 实际充电时间
 		realChargeTime := time.Now().Sub(startTime)
-		// 充电完毕
-		FreePileMutex[station.StationId].Lock()
-		// 移除一辆汽车（正在充电的汽车将会被移除队列，如果充电桩故障，需要重新将新的车辆信息加入WAITING）
-		chargePile.Dequeue()
-		// 队列空闲数+1
-		FreePile[station.StationId][chargePile.PileId] += 1
-		FreePileMutex[station.StationId].Unlock()
+
 		// 修改充电桩的等待时间
 		chargePile.WaitingTime -= car.ChargeTime
 		// 计算充电所使用的钱
@@ -288,18 +282,32 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 			// 提前中断，有两种情况，一种是删除订单，一种是充电桩故障
 			// 删除订单需要把state设置为finished
 
-			// 充电桩故障,把订单状态改为DISPATCH
+			// 充电桩故障
 			// 退出充电的时候要采用故障调度，直接将WAITING拷贝出来，然后将故障队列的车放到WAITING，同时将WAITING上锁不允许车辆加入，等到故障队列的车都调度完毕之后将原来的WAITING复制回来并解锁
 			if !IsOpen[station.StationId][chargePile.PileId] {
-				currentOrder.State = "DISPATCH"
-				fmt.Println(fmt.Sprintf("充电桩 %d 故障", chargePile.PileId))
-
-				// 将故障充电桩下正在充电的汽车重新加入WAITING
+				// 把第一个正在充电的车移除
+				chargePile.Dequeue()
+				// 计算这段时间这辆车充电的信息，赋值给新的车对象
 				newCar := car
 				// 剩余的充电时间减少
 				newCar.ChargeTime -= realChargeTime.Hours()
 				// 剩余的充电量减少
 				newCar.Energy = newCar.ChargeTime * Power[car.Mode]
+
+				// 操作数据库，把正在充电的订单状态改为WAITING,订单的充电桩号改成0
+				currentOrder.State = "WAITING"
+				currentOrder.PileId = 0
+				global.GVA_DB.Save(&currentOrder)
+				// 如果队列里面有第二辆车，需要把第二个订单的车的状态也更新成WAITING
+				if len(chargePile.Cars) > 0 {
+					var o system.Order
+					global.GVA_DB.Model(&system.Order{}).Where("car_id = ?", chargePile.Cars[0].CarId).First(&o)
+					o.State = "WAITING"
+					o.PileId = 0
+					global.GVA_DB.Save(&o)
+				}
+
+				fmt.Println(fmt.Sprintf("充电桩 %d 故障", chargePile.PileId))
 
 				// WAITING不让新汽车进入，优先调度故障充电桩队列的车
 				WaitingBlockBusy = true
@@ -308,6 +316,8 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 				chargePile.WaitingTime = 0
 				// 把故障充电桩充电队列内的车都加入等待区，优先重新调度
 				station.Waiting.Cars = chargePile.Cars
+				// 充电队列车清零
+				chargePile.Cars = nil
 				station.Waiting.Cars = append(station.Waiting.Cars, newCar)
 				fmt.Println(station.Waiting.Cars)
 				for {
@@ -315,7 +325,8 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 						break
 					}
 					time.Sleep(5 * time.Second)
-					fmt.Println("故障队列还在调度")
+					fmt.Println("故障队列还在调度，故障队列：")
+					fmt.Println(station.Waiting)
 				}
 				station.Waiting.Cars = wBlock
 				fmt.Println(station.Waiting.Cars)
@@ -328,6 +339,13 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 			}
 		} else {
 			// 正常充完电
+			FreePileMutex[station.StationId].Lock()
+			// 移除一辆汽车（正在充电的汽车将会被移除队列，如果充电桩故障，需要重新将新的车辆信息加入WAITING）
+			chargePile.Dequeue()
+			// 队列空闲数+1
+			FreePile[station.StationId][chargePile.PileId] += 1
+			FreePileMutex[station.StationId].Unlock()
+
 			currentOrder.State = "FINISHED"
 			fmt.Println("数据库修改完成，car_id = " + car.CarId + " CHARGING到FINISHED")
 		}

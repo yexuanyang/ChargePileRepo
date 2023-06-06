@@ -226,7 +226,7 @@ const type = ref('')
 
 // 更新行
 const updateCarFunc = async(row) => {
-  const res = await findCar({ ID: row.ID })
+  const res = await findCar({ id: row.ID })
   type.value = 'update'
   if (res.code === 0) {
     formData.value = res.data.recarInfo
