@@ -4,8 +4,8 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
-	userReq "github.com/flipped-aurora/gin-vue-admin/server/model/user/request"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	userReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -26,7 +26,7 @@ var userInfoService = service.ServiceGroupApp.UserServiceGroup.UsersService
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /userInfo/createUsers [post]
 func (userInfoApi *UsersApi) CreateUsers(c *gin.Context) {
-	var userInfo user.Users
+	var userInfo system.SysUser
 	err := c.ShouldBindJSON(&userInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -50,7 +50,7 @@ func (userInfoApi *UsersApi) CreateUsers(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
 // @Router /userInfo/deleteUsers [delete]
 func (userInfoApi *UsersApi) DeleteUsers(c *gin.Context) {
-	var userInfo user.Users
+	var userInfo system.SysUser
 	err := c.ShouldBindJSON(&userInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -98,7 +98,7 @@ func (userInfoApi *UsersApi) DeleteUsersByIds(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"更新成功"}"
 // @Router /userInfo/updateUsers [put]
 func (userInfoApi *UsersApi) UpdateUsers(c *gin.Context) {
-	var userInfo user.Users
+	var userInfo system.SysUser
 	err := c.ShouldBindJSON(&userInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -122,7 +122,7 @@ func (userInfoApi *UsersApi) UpdateUsers(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
 // @Router /userInfo/findUsers [get]
 func (userInfoApi *UsersApi) FindUsers(c *gin.Context) {
-	var userInfo user.Users
+	var userInfo system.SysUser
 	err := c.ShouldBindQuery(&userInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)

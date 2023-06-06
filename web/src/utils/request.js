@@ -8,6 +8,11 @@ const service = axios.create({
   baseURL: import.meta.env.VITE_BASE_API,
   timeout: 99999
 })
+const bonusService = axios.create({
+  baseURL: import.meta.env.VITE_BONUS_API,
+  timeout: 99999
+})
+
 let acitveAxios = 0
 let timer
 const showLoading = () => {
@@ -38,8 +43,34 @@ service.interceptors.request.use(
     const userStore = useUserStore()
     config.headers = {
       'Content-Type': 'application/json',
-      'x-token': userStore.token,
-      'x-user-id': userStore.userInfo.ID,
+      'token': userStore.x_token,
+      ...config.headers
+    }
+    return config
+  },
+  error => {
+    if (!error.config.donNotShowLoading) {
+      closeLoading()
+    }
+    ElMessage({
+      showClose: true,
+      message: error,
+      type: 'error'
+    })
+    return error
+  }
+)
+
+// http request 拦截器
+bonusService.interceptors.request.use(
+  config => {
+    if (!config.donNotShowLoading) {
+      showLoading()
+    }
+    const userStore = useUserStore()
+    config.headers = {
+      'Content-Type': 'application/json',
+      'token': userStore.token,
       ...config.headers
     }
     return config
@@ -117,7 +148,7 @@ service.interceptors.response.use(
         })
           .then(() => {
             const userStore = useUserStore()
-            userStore.token = ''
+            userStore.setToken('')
             localStorage.clear()
             router.push({ name: 'Login', replace: true })
           })
@@ -138,4 +169,45 @@ service.interceptors.response.use(
     return error
   }
 )
+
+// http response 拦截器
+bonusService.interceptors.response.use(
+  response => {
+    const userStore = useUserStore()
+    if (!response.config.donNotShowLoading) {
+      closeLoading()
+    }
+    if (response.headers['new-token']) {
+      userStore.setToken(response.headers['new-token'])
+    }
+    if (response.data.code === 0 || response.headers.success === 'true') {
+      if (response.headers.msg) {
+        response.data.msg = decodeURI(response.headers.msg)
+      }
+      return response.data
+    } else {
+      ElMessage({
+        showClose: true,
+        message: response.data.msg || decodeURI(response.headers.msg),
+        type: 'error'
+      })
+      if (response.data.data && response.data.data.reload) {
+        userStore.setToken('')
+        localStorage.clear()
+        router.push({ name: 'Login', replace: true })
+      }
+      return response.data.msg ? response.data : response
+    }
+  },
+  error => {
+    if (!error.config.donNotShowLoading) {
+      closeLoading()
+    }
+    return error
+  }
+)
 export default service
+
+export {
+  bonusService
+}

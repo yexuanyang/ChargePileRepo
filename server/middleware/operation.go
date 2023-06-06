@@ -33,7 +33,7 @@ func init() {
 func OperationRecord() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var body []byte
-		var userId int
+		var user_id int
 		if c.Request.Method != http.MethodGet {
 			var err error
 			body, err = io.ReadAll(c.Request.Body)
@@ -57,13 +57,13 @@ func OperationRecord() gin.HandlerFunc {
 		}
 		claims, _ := utils.GetClaims(c)
 		if claims.BaseClaims.ID != 0 {
-			userId = int(claims.BaseClaims.ID)
+			user_id = int(claims.BaseClaims.ID)
 		} else {
 			id, err := strconv.Atoi(c.Request.Header.Get("x-user-id"))
 			if err != nil {
-				userId = 0
+				user_id = 0
 			}
-			userId = id
+			user_id = id
 		}
 		record := system.SysOperationRecord{
 			Ip:     c.ClientIP(),
@@ -71,7 +71,7 @@ func OperationRecord() gin.HandlerFunc {
 			Path:   c.Request.URL.Path,
 			Agent:  c.Request.UserAgent(),
 			Body:   string(body),
-			UserID: userId,
+			UserID: user_id,
 		}
 
 		// 上传文件时候 中间件日志进行裁断操作

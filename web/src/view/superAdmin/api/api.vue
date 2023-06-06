@@ -176,6 +176,11 @@ const methodOptions = ref([
     value: 'DELETE',
     label: '删除',
     type: 'danger'
+  },
+  {
+    value: 'PATCH',
+    label: '更新2',
+    type: ''
   }
 ])
 

@@ -105,7 +105,7 @@
                 </el-form-item>
             </el-form>
             <el-table :data="tableData" border show-summary :summary-method="getSummaries"
-                style="width: 100%;display:inline-block;" :default-sort="{ prop: 'userId', order: 'descending' }">
+                style="width: 100%;display:inline-block;" :default-sort="{ prop: 'user_id', order: 'descending' }">
                 <el-table-column align="left" label="日期" width="180" fixed prop="CreatedAt">
                     <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
                 </el-table-column>
@@ -312,7 +312,7 @@ initData()
 
 interface Order {
     CreatedAt: Date
-    userId: number
+    user_id: number
     carId: string
     chargeType: string
     chargeCost: number

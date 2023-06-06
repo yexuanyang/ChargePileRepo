@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
 )
 
 type ReportService struct {
@@ -15,7 +14,7 @@ type ReportService struct {
 
 // GetDurationTotalCharge 获得一段时间的充电总度数
 func (reportService *ReportService) GetDurationTotalCharge(report request.ReportSearch) (total float64, err error) {
-	db := global.GVA_DB.Model(&user.Order{}).Where("user_id = ?", report.UserId)
+	db := global.GVA_DB.Model(&system.Order{}).Where("user_id = ?", report.UserId)
 	db = db.Where("created_at BETWEEN ? AND ?", report.Date, report.EndDate)
 	result := db.Select("CAST(SUM(kwh) as DECIMAL(10,2)) as total").Find(&total)
 	if result.Error != nil {
@@ -28,7 +27,7 @@ func (reportService *ReportService) GetDurationTotalCharge(report request.Report
 
 // GetDurationTotalPrice 获得一段时间的充电总金额
 func (reportService *ReportService) GetDurationTotalPrice(report request.ReportSearch) (total float64, err error) {
-	db := global.GVA_DB.Model(&user.Order{}).Where("user_id = ?", report.UserId)
+	db := global.GVA_DB.Model(&system.Order{}).Where("user_id = ?", report.UserId)
 	db = db.Where("created_at BETWEEN ? AND ?", report.Date, report.EndDate)
 	result := db.Select("CAST(SUM(total_cost) as DECIMAL(10,2)) as total").Find(&total)
 	if result.Error != nil {
@@ -60,7 +59,7 @@ func (reportService *ReportService) GetDurationChargeInfo(report request.ChargeP
 func (reportService *ReportService) GetDurationReportInfo(report request.ReportSearch) (res []response.OrderReportResponse, err error) {
 	const selectSQL = "DATE_FORMAT( created_at, '%Y-%m-%d' ) AS date,CAST(SUM( kwh ) AS DECIMAL(10,2)) AS total_kwh,CAST(SUM( total_cost ) AS DECIMAL(10,2)) AS total_cost," +
 		"CAST(SUM( service_cost ) AS DECIMAL ( 10, 2 )) AS total_service_cost ,CAST(SUM( charge_cost ) AS DECIMAL ( 10, 2 )) AS total_charge_cost"
-	db := global.GVA_DB.Model(&user.Order{}).Select(selectSQL)
+	db := global.GVA_DB.Model(&system.Order{}).Select(selectSQL)
 	db = db.Where("created_at BETWEEN ? AND ?", report.Date, report.EndDate).Where("user_id = ?", report.UserId).Group("DATE_FORMAT( created_at, '%Y-%m-%d' )")
 	tx := db.Order("DATE_FORMAT( created_at, '%Y-%m-%d' ) DESC").Find(&res)
 	if tx.Error != nil {

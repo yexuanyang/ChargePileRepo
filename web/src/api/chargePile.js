@@ -1,4 +1,4 @@
-import service from '@/utils/request'
+import service, {bonusService} from '@/utils/request'
 
 // @Tags ChargePile
 // @Summary 创建ChargePile
@@ -101,5 +101,20 @@ export const UpdateChargePileByIds = (data) => {
     url: '/admin/manage_isOpen',
     method: 'post',
     data
+  })
+}
+
+export const UpdateChargePileByIds2 = (data) => {
+  return service({
+    url: '/admin/index/manage',
+    method: 'post',
+    data
+  })
+}
+
+export const getChargeStationInfo = () => {
+  return bonusService({
+    url: '/admin/index/manage',
+    method: 'get',
   })
 }

@@ -3,6 +3,7 @@ package system
 import (
 	"errors"
 	"fmt"
+	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -46,12 +47,30 @@ func (userService *UserService) Login(u *system.SysUser) (userInter *system.SysU
 	}
 
 	var user system.SysUser
-	err = global.GVA_DB.Where("username = ?", u.Username).Preload("Authorities").Preload("Authority").First(&user).Error
+	err = global.GVA_DB.Preload("Authorities").Preload("Authority").First(&user, "username = ? AND authority_id = 8881 ", u.Username).Error
+	//err = global.GVA_DB.Where("username = ? AND authority_id = 8881", u.Username).First(&user).Error
 	if err == nil {
 		if ok := utils.BcryptCheck(u.Password, user.Password); !ok {
 			return nil, errors.New("密码错误")
 		}
-		MenuServiceApp.UserAuthorityDefaultRouter(&user)
+		//MenuServiceApp.UserAuthorityDefaultRouter(&user)
+	}
+	return &user, err
+}
+
+func (userService *UserService) AdminLogin(u *system.SysUser) (userInter *system.SysUser, err error) {
+	if nil == global.GVA_DB {
+		return nil, fmt.Errorf("db not init")
+	}
+
+	var user system.SysUser
+	err = global.GVA_DB.Preload("Authorities").Preload("Authority").First(&user, "username = ? AND authority_id = 888 ", u.Username).Error
+	//err = global.GVA_DB.Where("username = ? AND authority_id = 888 ", u.Username).First(&user).Error
+	if err == nil {
+		if ok := utils.BcryptCheck(u.Password, user.Password); !ok {
+			return nil, errors.New("密码错误")
+		}
+		//MenuServiceApp.UserAuthorityDefaultRouter(&user)
 	}
 	return &user, err
 }
@@ -203,8 +222,30 @@ func (userService *UserService) GetUserInfo(uuid uuid.UUID) (user system.SysUser
 	if err != nil {
 		return reqUser, err
 	}
-	MenuServiceApp.UserAuthorityDefaultRouter(&reqUser)
+	//MenuServiceApp.UserAuthorityDefaultRouter(&reqUser)
 	return reqUser, err
+}
+
+func (userService *UserService) GetUserInfo2(uid uint) (user []system.Car, err error) {
+	var reqCar []system.Car
+	err = global.GVA_DB.Preload("User").Find(&reqCar, "user_id = ?", uid).Error
+	if err != nil {
+		return reqCar, err
+	}
+	//MenuServiceApp.UserAuthorityDefaultRouter(&reqCar)
+	return reqCar, err
+}
+
+func (userService *UserService) UpdateUserInfo2(req systemReq.ChangeUserInfo2) (err error) {
+	var newUser system.SysUser
+	global.GVA_DB.First(&newUser, "uuid = ?", req.ID)
+	if ok := utils.BcryptCheck(req.OldPassword, newUser.Password); !ok {
+		return errors.New("原密码错误")
+	}
+	newUser.Password = utils.BcryptHash(req.NewPassword)
+	newUser.NickName = req.Name
+	global.GVA_DB.Save(newUser)
+	return nil
 }
 
 //@author: [SliverHorn](https://github.com/SliverHorn)

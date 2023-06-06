@@ -1,4 +1,13 @@
-import { login, getUserInfo, setSelfInfo } from '@/api/user'
+import {
+  login,
+  getUserInfo,
+  setSelfInfo,
+  adminLogin,
+  getUserInfo_2,
+  localLogin,
+  localAdminLogin,
+  localRegister
+} from '@/api/user'
 import { jsonInBlacklist } from '@/api/jwt'
 import router from '@/router/index'
 import { ElLoading, ElMessage } from 'element-plus'
@@ -18,13 +27,20 @@ export const useUserStore = defineStore('user', () => {
     activeColor: 'var(--el-color-primary)',
     baseColor: '#fff'
   })
+  // token存储和其他组交互使用的token
   const token = ref(window.localStorage.getItem('token') || '')
+  // x_token存储本地接口使用的token
+  const x_token = ref(window.localStorage.getItem('x-token') || '')
   const setUserInfo = (val) => {
     userInfo.value = val
   }
 
   const setToken = (val) => {
     token.value = val
+  }
+
+  const setXToken = (val) => {
+    x_token.value = val
   }
 
   const NeedInit = () => {
@@ -49,23 +65,36 @@ export const useUserStore = defineStore('user', () => {
     return res
   }
   /* 登录*/
-  const LoginIn = async(loginInfo) => {
+  const LoginIn = async(loginInfo, type) => {
     loadingInstance.value = ElLoading.service({
       fullscreen: true,
       text: '登录中，请稍候...',
     })
     try {
-      const res = await login(loginInfo)
-      if (res.code === 0) {
-        setUserInfo(res.data.user)
-        setToken(res.data.token)
+      let res
+      let uinfo
+      let remoteres
+      if (type === 'user') {
+        remoteres = await login(loginInfo)
+        res = await localLogin(loginInfo)
+      } else {
+        remoteres = await adminLogin(loginInfo)
+        res = await localAdminLogin(loginInfo)
+      }
+      if (remoteres.code === 0) {
+        setXToken(res.data.token)
+        setToken(remoteres.data.token)
+        uinfo = await getUserInfo()
+        setUserInfo(uinfo.data.userInfo)
         const routerStore = useRouterStore()
-        await routerStore.SetAsyncRouter()
+
+        window.localStorage.setItem('type', type)
+        await routerStore.SetAsyncRouter(type)
         const asyncRouters = routerStore.asyncRouters
         asyncRouters.forEach(asyncRouter => {
           router.addRoute(asyncRouter)
         })
-        await router.replace({ name: userInfo.value.authority.defaultRouter })
+        await router.replace({ name: 'person' })
         loadingInstance.value.close()
 
         const isWin = ref(/windows/i.test(navigator.userAgent))
@@ -137,12 +166,18 @@ export const useUserStore = defineStore('user', () => {
     window.localStorage.setItem('token', token.value)
   })
 
+  watch(() => x_token.value, () => {
+    window.localStorage.setItem('x-token', x_token.value)
+  })
+
   return {
     userInfo,
     token,
+    x_token,
     NeedInit,
     ResetUserInfo,
     GetUserInfo,
+    // GetUserInfo_2,
     LoginIn,
     LoginOut,
     changeSideMode,

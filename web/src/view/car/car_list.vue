@@ -3,9 +3,9 @@
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline" @keyup.enter="onSubmit">
         <el-form-item label="创建时间">
-          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始时间"></el-date-picker>
+          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始时间" />
           —
-          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间"></el-date-picker>
+          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间" />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
@@ -16,62 +16,49 @@
     <div class="gva-table-box">
       <div class="gva-btn-list">
         <el-button type="primary" icon="plus" @click="openDialog">新增</el-button>
-        <el-popover v-model:visible="deleteVisible" placement="top" width="160">
-          <p>确定要删除吗？</p>
-          <div style="text-align: right; margin-top: 8px;">
-            <el-button type="primary" link @click="deleteVisible = false">取消</el-button>
-            <el-button type="primary" @click="onDelete">确定</el-button>
-          </div>
-          <template #reference>
-            <el-button icon="delete" style="margin-left: 10px;" :disabled="!multipleSelection.length" @click="deleteVisible = true">删除</el-button>
-          </template>
-        </el-popover>
       </div>
       <el-table
-          ref="multipleTable"
-          style="width: 100%"
-          tooltip-effect="dark"
-          :data="tableData"
-          row-key="ID"
-          @selection-change="handleSelectionChange"
+        ref="multipleTable"
+        style="width: 100%"
+        tooltip-effect="dark"
+        :data="tableData"
+        row-key="ID"
+        @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column align="left" label="日期" width="180">
-          <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
-        </el-table-column>
-<!--        <el-table-column align="left" label="用户的id" prop="userId" width="120" />-->
-        <el-table-column align="left" label="车牌号" prop="carId" width="120" />
-        <el-table-column align="left" label="电池容量" prop="batteryCapacity" width="120" />
-        <el-table-column align="left" label="车的品牌" prop="carBoard" width="120" />
+        <el-table-column align="left" label="车辆id" prop="car_id" width="120" />
+        <el-table-column align="left" label="车辆名称" prop="name" width="120" />
+        <el-table-column align="left" label="电池容量(kwh)" prop="power_capacity" width="120" />
+        <el-table-column align="left" label="当前电量(kwh)" prop="power_current" width="120" />
         <el-table-column align="left" label="按钮组">
           <template #default="scope">
-            <el-button type="primary" link icon="edit" class="table-button" @click="updateCarFunc(scope.row)">变更</el-button>
-            <el-button type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
+            <el-button type="primary" link icon="edit" class="table-button" @click="updateCarFunc2(scope.row)">变更</el-button>
           </template>
         </el-table-column>
       </el-table>
       <div class="gva-pagination">
         <el-pagination
-            layout="total, sizes, prev, pager, next, jumper"
-            :current-page="page"
-            :page-size="pageSize"
-            :page-sizes="[10, 30, 50, 100]"
-            :total="total"
-            @current-change="handleCurrentChange"
-            @size-change="handleSizeChange"
+          layout="total, sizes, prev, pager, next, jumper"
+          :current-page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 30, 50, 100]"
+          :total="total"
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
         />
       </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
-      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="120px">
-        <el-form-item label="车牌号:"  prop="carId" >
-          <el-input v-model="formData.carId" :clearable="true"  placeholder="请输入" />
+      <el-form ref="elFormRef" :model="formData" label-position="right" :rules="rule" label-width="120px">
+        <el-form-item label="车辆名称:" prop="name">
+          <el-input v-model="formData.name" :clearable="true" placeholder="请输入" />
         </el-form-item>
-        <el-form-item label="电池容量:"  prop="batteryCapacity" >
-          <el-input-number v-model="formData.batteryCapacity"  style="width:100%" :precision="2" :clearable="true"  />
+        <el-form-item label="电池容量(kwh):" prop="power_capacity">
+          <el-input-number v-model="formData.power_capacity" style="width:100%" :precision="2" :clearable="true" />
         </el-form-item>
-        <el-form-item label="车的品牌:"  prop="carBoard" >
-          <el-input v-model="formData.carBoard" :clearable="true"  placeholder="请输入" />
+
+        <el-form-item label="当前电量(kwh):" prop="power_current">
+          <el-input-number v-model="formData.power_current" style="width:100%" :precision="2" :clearable="true" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -97,50 +84,42 @@ import {
   deleteCarByIds,
   updateCar,
   findCar,
-  getCarList, getCarListByUserId
+  getCarList, getCarListByUserId, getCarListByUserId2, createCar2, updateCar2
 } from '@/api/car'
 
 // 全量引入格式化工具 请按需保留
 import { getDictFunc, formatDate, formatBoolean, filterDict } from '@/utils/format'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import {ref, reactive, toRef} from 'vue'
+import { ref, reactive, toRef } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
-  userId: 0,
-  carId: '',
-  batteryCapacity: 0,
-  carBoard: '',
+  name: '',
+  power_capacity: 0,
+  power_current: 0
 })
 
-const validateCarId = () =>{
+const validateCarId = () => {
   const regex = /^[\u4e00-\u9fa5]{1}[A-Z]{1}[A-Z_0-9]{5}$/
-  const value = toRef(formData, 'carId').value.carId
+  const value = toRef(formData, 'name').value.name
   return regex.test(value)
 }
 
 // 验证规则
 const rule = reactive({
-  batteryCapacity : [{
+  power_capacity: [{
     required: true,
     message: '电池容量不能为空',
-    trigger: ['input','blur'],
-    }],
-  userId : [{
-    required: true,
-    message: '',
-    trigger: ['input','blur'],
+    trigger: ['input', 'blur'],
   }],
-  carId : [{
-    validator: validateCarId,
+  name: [{
     required: true,
     message: '请输入合法的车牌号',
-    trigger: ['input','blur'],
+    trigger: ['input', 'blur'],
   }],
 })
 
 const elFormRef = ref()
-
 
 // =========== 表格控制部分 ===========
 const page = ref(1)
@@ -176,12 +155,9 @@ const handleCurrentChange = (val) => {
 
 // 查询
 const getTableData = async() => {
-  const table = await getCarListByUserId({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
+  const table = await getCarListByUserId2()
   if (table.code === 0) {
-    tableData.value = table.data.list
-    total.value = table.data.total
-    page.value = table.data.page
-    pageSize.value = table.data.pageSize
+    tableData.value = table.data
   }
 }
 
@@ -190,12 +166,11 @@ getTableData()
 // ============== 表格控制部分结束 ===============
 
 // 获取需要的字典 可能为空 按需保留
-const setOptions = async () =>{
+const setOptions = async() => {
 }
 
 // 获取需要的字典 可能为空 按需保留
 setOptions()
-
 
 // 多选数据
 const multipleSelection = ref([])
@@ -214,7 +189,6 @@ const deleteRow = (row) => {
     deleteCarFunc(row)
   })
 }
-
 
 // 批量删除控制标记
 const deleteVisible = ref(false)
@@ -260,9 +234,17 @@ const updateCarFunc = async(row) => {
   }
 }
 
+const updateCarFunc2 = async(row) => {
+  formData.value.car_id = row.car_id
+  formData.value.name = row.name
+  formData.value.power_current = row.power_current
+  formData.value.power_capacity = row.power_capacity
+  type.value = 'update'
+  dialogFormVisible.value = true
+}
 
 // 删除行
-const deleteCarFunc = async (row) => {
+const deleteCarFunc = async(row) => {
   const res = await deleteCar({ ID: row.ID })
   if (res.code === 0) {
     ElMessage({
@@ -289,26 +271,25 @@ const openDialog = () => {
 const closeDialog = () => {
   dialogFormVisible.value = false
   formData.value = {
-    userId: 0,
-    carId: '',
-    batteryCapacity: 0,
-    carBoard: '',
+    name: '',
+    power_capacity: 0,
+    power_current: 0
   }
 }
 // 弹窗确定
-const enterDialog = async () => {
-  elFormRef.value?.validate( async (valid) => {
+const enterDialog = async() => {
+  elFormRef.value?.validate(async(valid) => {
     if (!valid) return
     let res
     switch (type.value) {
       case 'create':
-        res = await createCar(formData.value)
+        res = await createCar2(formData.value)
         break
       case 'update':
-        res = await updateCar(formData.value)
+        res = await updateCar2(formData.value)
         break
       default:
-        res = await createCar(formData.value)
+        res = await createCar2(formData.value)
         break
     }
     if (res.code === 0) {
@@ -317,7 +298,7 @@ const enterDialog = async () => {
         message: '创建/更改成功'
       })
       closeDialog()
-      getTableData()
+      await getTableData()
     }
   })
 }

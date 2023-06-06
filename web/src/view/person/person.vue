@@ -52,21 +52,21 @@
                 <el-tooltip
                   class="item"
                   effect="light"
-                  content="北京反转极光科技有限公司-技术部-前端事业群"
+                  content="北京邮电大学"
                   placement="top"
                 >
                   <li>
                     <el-icon>
                       <data-analysis />
                     </el-icon>
-                    北京反转极光科技有限公司-技术部-前端事业群
+                    北京邮电大学
                   </li>
                 </el-tooltip>
                 <li>
                   <el-icon>
                     <video-camera />
                   </el-icon>
-                  中国·北京市·朝阳区
+                  中国·北京市·海淀区
                 </li>
                 <el-tooltip
                   class="item"
@@ -106,20 +106,13 @@
                   </p>
                 </li>
                 <li>
-                  <p class="title">密保问题</p>
+                  <p class="title">修改个人信息</p>
                   <p class="desc">
-                    未设置密保问题
-                    <a href="javascript:void(0)">去设置</a>
-                  </p>
-                </li>
-                <li>
-                  <p class="title">修改密码</p>
-                  <p class="desc">
-                    修改个人密码
+                    修改昵称、密码
                     <a
                       href="javascript:void(0)"
                       @click="showPassword = true"
-                    >修改密码</a>
+                    >修改个人信息</a>
                   </p>
                 </li>
               </ul>
@@ -133,7 +126,7 @@
 
     <el-dialog
       v-model="showPassword"
-      title="修改密码"
+      title="修改个人信息"
       width="360px"
       @close="clearPassword"
     >
@@ -143,11 +136,14 @@
         :rules="rules"
         label-width="80px"
       >
-        <el-form-item :minlength="6" label="原密码" prop="password">
-          <el-input v-model="pwdModify.password" show-password />
+        <el-form-item :minlength="6" label="新名称" prop="name">
+          <el-input v-model="pwdModify.name" />
         </el-form-item>
-        <el-form-item :minlength="6" label="新密码" prop="newPassword">
-          <el-input v-model="pwdModify.newPassword" show-password />
+        <el-form-item :minlength="6" label="原密码" prop="old_password">
+          <el-input v-model="pwdModify.old_password" show-password />
+        </el-form-item>
+        <el-form-item :minlength="6" label="新密码" prop="new_password">
+          <el-input v-model="pwdModify.new_password" show-password />
         </el-form-item>
         <el-form-item :minlength="6" label="确认密码" prop="confirmPassword">
           <el-input v-model="pwdModify.confirmPassword" show-password />
@@ -173,12 +169,6 @@
         <el-form-item label="手机号" label-width="120px">
           <el-input v-model="phoneForm.phone" placeholder="请输入手机号" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="验证码" label-width="120px">
-          <div class="code-box">
-            <el-input v-model="phoneForm.code" autocomplete="off" placeholder="请自行设计短信服务，此处为模拟随便写" style="width:300px" />
-            <el-button type="primary" :disabled="time>0" @click="getCode">{{ time>0?`(${time}s)后重新获取`:'获取验证码' }}</el-button>
-          </div>
-        </el-form-item>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -199,12 +189,6 @@
       <el-form :model="emailForm">
         <el-form-item label="邮箱" label-width="120px">
           <el-input v-model="emailForm.email" placeholder="请输入邮箱" autocomplete="off" />
-        </el-form-item>
-        <el-form-item label="验证码" label-width="120px">
-          <div class="code-box">
-            <el-input v-model="emailForm.code" placeholder="请自行设计邮件服务，此处为模拟随便写" autocomplete="off" style="width:300px" />
-            <el-button type="primary" :disabled="emailTime>0" @click="getEmailCode">{{ emailTime>0?`(${emailTime}s)后重新获取`:'获取验证码' }}</el-button>
-          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -232,7 +216,7 @@ export default {
 
 <script setup>
 import ChooseImg from '@/components/chooseImg/index.vue'
-import { setSelfInfo, changePassword } from '@/api/user.js'
+import {setSelfInfo, changePassword, changeInformation2} from '@/api/user.js'
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/pinia/modules/user'
@@ -240,11 +224,14 @@ import { useUserStore } from '@/pinia/modules/user'
 const path = ref(import.meta.env.VITE_BASE_API + '/')
 const activeName = ref('second')
 const rules = reactive({
-  password: [
+  name: [
+    { required: true, message: '请输入新名称', trigger: 'blur' },
+  ],
+  old_password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '最少6个字符', trigger: 'blur' },
   ],
-  newPassword: [
+  new_password: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 6, message: '最少6个字符', trigger: 'blur' },
   ],
@@ -253,7 +240,7 @@ const rules = reactive({
     { min: 6, message: '最少6个字符', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
-        if (value !== pwdModify.value.newPassword) {
+        if (value !== pwdModify.value.new_password) {
           callback(new Error('两次密码不一致'))
         } else {
           callback()
@@ -273,9 +260,10 @@ const editFlag = ref(false)
 const savePassword = async() => {
   modifyPwdForm.value.validate((valid) => {
     if (valid) {
-      changePassword({
-        password: pwdModify.value.password,
-        newPassword: pwdModify.value.newPassword,
+      changeInformation2({
+        name: pwdModify.value.name,
+        old_password: pwdModify.value.old_password,
+        new_password: pwdModify.value.new_password,
       }).then((res) => {
         if (res.code === 0) {
           ElMessage.success('修改密码成功！')

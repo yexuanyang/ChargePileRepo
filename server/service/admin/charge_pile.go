@@ -63,6 +63,9 @@ func (chargePileService *ChargePileService) GetChargePileInfoList(info adminReq.
 	if info.StationID != 0 {
 		db = db.Where("station_id = ?", info.StationID)
 	}
+	if info.ID != 0 {
+		db = db.Where("id = ?", info.ID)
+	}
 	err = db.Count(&total).Error
 	if err != nil {
 		return

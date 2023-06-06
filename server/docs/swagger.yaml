@@ -4172,6 +4172,6 @@ paths:
 securityDefinitions:
   ApiKeyAuth:
     in: header
-    name: x-token
+    name: token
     type: apiKey
 swagger: "2.0"
