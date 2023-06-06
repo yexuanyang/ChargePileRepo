@@ -39,7 +39,7 @@
         <el-table-column align="left" label="日期" width="180">
             <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="用户的id" prop="userId" width="120" />
+        <el-table-column align="left" label="用户的id" prop="user_id" width="120" />
         <el-table-column align="left" label="车牌号" prop="carId" width="120" />
         <el-table-column align="left" label="电池容量" prop="batteryCapacity" width="120" />
         <el-table-column align="left" label="车的品牌" prop="carBoard" width="120" />
@@ -64,8 +64,8 @@
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
       <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="80px">
-        <el-form-item label="用户的id:"  prop="userId" >
-          <el-input v-model.number="formData.userId" :clearable="true" placeholder="请输入" />
+        <el-form-item label="用户的id:"  prop="user_id" >
+          <el-input v-model.number="formData.user_id" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="车牌号:"  prop="carId" >
           <el-input v-model="formData.carId" :clearable="true"  placeholder="请输入" />
@@ -110,7 +110,7 @@ import { ref, reactive } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
-        userId: 0,
+        user_id: 0,
         carId: '',
         batteryCapacity: 0,
         carBoard: '',
@@ -118,7 +118,7 @@ const formData = ref({
 
 // 验证规则
 const rule = reactive({
-               userId : [{
+               user_id : [{
                    required: true,
                    message: '',
                    trigger: ['input','blur'],
@@ -280,7 +280,7 @@ const openDialog = () => {
 const closeDialog = () => {
     dialogFormVisible.value = false
     formData.value = {
-        userId: 0,
+        user_id: 0,
         carId: '',
         batteryCapacity: 0,
         carBoard: '',

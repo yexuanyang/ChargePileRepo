@@ -1,4 +1,4 @@
-import service from '@/utils/request'
+import service, {bonusService} from '@/utils/request'
 // @Summary 用户登录 获取动态路由
 // @Produce  application/json
 // @Param 可以什么都不填 调一下即可

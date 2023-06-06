@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"math"
 	"modernc.org/libc/limits"
@@ -15,12 +15,8 @@ import (
 )
 
 var (
-	// ErrorDispatch 出现故障时调度算法
-	ErrorDispatch = map[int]string{0: "优先级调度", 1: "时间顺序调度"}
-	// Dispatch 调度算法
-	Dispatch = map[int]string{0: "先来先服务调度", 1: "singleDispatch", 2: "batchDispatch"}
 	// Mode 充电模式
-	Mode = map[string]int{"快充": 0, "慢充": 1}
+	Mode = map[string]int{"F": 0, "T": 1}
 	// Power 充电功率
 	Power = []float64{30.0, 7.0}
 	// ChargeStations 充电站集合
@@ -30,13 +26,13 @@ var (
 	FreePileMutex []sync.Mutex
 	// IsInterrupt 用来处理前端发送的取消订单操作,IsInterrupt[0][1] = true 表示第1个充电站的第2个充电桩需要提前中断充电
 	IsInterrupt []map[int]bool
-	// CarNum 等待区汽车数量 CarNum[1][1] = 2表示充电站2的等待区中有2辆慢充汽车 CarNum[1][0] = 3 表示充电站2的等待区有3辆快充汽车
+	// CarNum WAITING汽车数量 CarNum[1][1] = 2表示充电站2的WAITING中有2辆慢充汽车 CarNum[1][0] = 3 表示充电站2的WAITING有3辆快充汽车
 	CarNum [][]int
 	// QueuePrefix 队列号前缀，根据充电类型区分
 	QueuePrefix = []string{0: "F", 1: "T"}
 	// IsOpen 处理充电桩关闭的操作,IsOpen[0][2] = true表示第一个充电站的第三个充电桩开启
 	IsOpen           []map[int]bool
-	WaitingBlockBusy = false // 等待区是否忙（是否正在给故障队列调度）,忙的时候不允许向里面加数据
+	WaitingBlockBusy = false // WAITING是否忙（是否正在给故障队列调度）,忙的时候不允许向里面加数据
 
 	chargeStationService = service.ServiceGroupApp.AdminServiceGroup.ChargeStationService
 	chargePileService    = service.ServiceGroupApp.AdminServiceGroup.ChargePileService
@@ -54,7 +50,7 @@ const (
 	normalEnd   = 23  // 平时结束时间
 	// ChargeStationNumber 充电站的数量
 	ChargeStationNumber = 2
-	// WaitingAreaSize 等待区大小
+	// WaitingAreaSize WAITING大小
 	WaitingAreaSize = 6
 	// ChargingQueueLen 充电队列长度
 	ChargingQueueLen = 2
@@ -120,7 +116,7 @@ func InitStation() {
 	for i := range ChargeStations {
 		// 初始充电桩
 		ChargeStations[i].ChargePiles = make(map[int]*ChargePile)
-		// 初始等待区车辆
+		// 初始WAITING车辆
 		ChargeStations[i].Waiting = &WaitingBlock{}
 		ChargeStations[i].Waiting.Cars = make([]Car, 0, WaitingAreaSize)
 		ChargeStations[i].Waiting.StationId = i
@@ -232,6 +228,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 		car := chargePile.Cars[0]
 		chargeTime, _ := time.ParseDuration(strconv.FormatFloat(car.ChargeTime, 'f', 5, 64) + "h")
 		fmt.Printf("充电桩 %v 开始充电，充电汽车 %v\n", chargePile.PileId, car.CarId)
+		global.GVA_DB.Model(&system.Order{}).Where("car_id = ? AND state <> 'CHARGING'", car.CarId).Update("state", "CHARGING")
 		startTime := time.Now()
 		// 通过随眠模拟充电,写在循环里方便实现删除订单时的提前结束充电
 		var i int
@@ -246,7 +243,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 		realChargeTime := time.Now().Sub(startTime)
 		// 充电完毕
 		FreePileMutex[station.StationId].Lock()
-		// 移除一辆汽车（正在充电的汽车将会被移除队列，如果充电桩故障，需要重新将新的车辆信息加入等待区）
+		// 移除一辆汽车（正在充电的汽车将会被移除队列，如果充电桩故障，需要重新将新的车辆信息加入WAITING）
 		chargePile.Dequeue()
 		// 队列空闲数+1
 		FreePile[station.StationId][chargePile.PileId] += 1
@@ -259,10 +256,10 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 		serviceCost := realChargeTime.Hours() * ServiceCostRate
 
 		fmt.Printf("充电桩 %v 结束充电，充电汽车 %v %v, 充电费用 %v\n", chargePile.PileId, car.CarId, realChargeTime.String(), chargeCost)
-		// 更新数据库订单中汽车开始充电时间、结束充电时间和充电费用
-		var currentOrder user.Order
+		// 更新数据库订单中汽车开始充电时间、结束充电时间和充电费用、总充电时间
+		var currentOrder system.Order
 		for i := 0; i < 5; i++ {
-			tx := global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state <> '已完成'", car.CarId).First(&currentOrder)
+			tx := global.GVA_DB.Model(&system.Order{}).Where("car_id = ? AND state <> 'FINISHED'", car.CarId).First(&currentOrder)
 			if tx.RowsAffected != 0 {
 				break
 			}
@@ -275,24 +272,36 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 		currentOrder.ServiceCost += serviceCost
 		currentOrder.ChargeCost += chargeCost
 		currentOrder.PileId = chargePile.PileId
+		var cp system.ChargePile
+		tx := global.GVA_DB.First(&cp, "id = ?", chargePile.PileId)
+		if tx.RowsAffected != 0 {
+			cp.ChargeCost += currentOrder.ChargeCost
+			cp.Electricity += currentOrder.Kwh
+			cp.ChargeCount += 1
+			cp.ServiceCost += currentOrder.ServiceCost
+			cp.TotalCost += currentOrder.TotalCost
+			global.GVA_DB.Save(&cp)
+		} else {
+			global.GVA_LOG.Error("订单结束时向充电桩中写入数据时出错")
+		}
 		if i != int(chargeTime.Seconds())+1 {
-			// 提前中断，记录目前充了多少电并移到等待区
-			currentOrder.State = "等待区"
-			fmt.Println("数据库修改完成，car_id = " + car.CarId + " 队列区到等待区")
+			// 提前中断，有两种情况，一种是删除订单，一种是充电桩故障
+			// 删除订单需要把state设置为finished
 
-			// 充电桩故障
-			// 退出充电的时候要采用故障调度，直接将等待区拷贝出来，然后将故障队列的车放到等待区，同时将等待区上锁不允许车辆加入，等到故障队列的车都调度完毕之后将原来的等待区复制回来并解锁
+			// 充电桩故障,把订单状态改为DISPATCH
+			// 退出充电的时候要采用故障调度，直接将WAITING拷贝出来，然后将故障队列的车放到WAITING，同时将WAITING上锁不允许车辆加入，等到故障队列的车都调度完毕之后将原来的WAITING复制回来并解锁
 			if !IsOpen[station.StationId][chargePile.PileId] {
+				currentOrder.State = "DISPATCH"
 				fmt.Println(fmt.Sprintf("充电桩 %d 故障", chargePile.PileId))
 
-				// 将故障充电桩下正在充电的汽车重新加入等待区
+				// 将故障充电桩下正在充电的汽车重新加入WAITING
 				newCar := car
 				// 剩余的充电时间减少
 				newCar.ChargeTime -= realChargeTime.Hours()
 				// 剩余的充电量减少
 				newCar.Energy = newCar.ChargeTime * Power[car.Mode]
 
-				// 等待区不让新汽车进入，优先调度故障充电桩队列的车
+				// WAITING不让新汽车进入，优先调度故障充电桩队列的车
 				WaitingBlockBusy = true
 				wBlock := station.Waiting.Cars
 				// 重置充电桩的等待时间，方便故障恢复的时候充电桩正常工作
@@ -310,21 +319,24 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 				}
 				station.Waiting.Cars = wBlock
 				fmt.Println(station.Waiting.Cars)
-				// 解除限制，新汽车可以加入等待区
+				// 解除限制，新汽车可以加入WAITING
 				WaitingBlockBusy = false
 
+			} else {
+				//充电桩没有故障，中断是因为取消订单，订单状态变成已完成
+				currentOrder.State = "FINISHED"
 			}
 		} else {
-			currentOrder.State = "已完成"
-			fmt.Println("数据库修改完成，car_id = " + car.CarId + " 队列区到已完成")
+			// 正常充完电
+			currentOrder.State = "FINISHED"
+			fmt.Println("数据库修改完成，car_id = " + car.CarId + " CHARGING到FINISHED")
 		}
 		global.GVA_DB.Save(&currentOrder)
-
 	}
 
 }
 
-// Dequeue 从等待区汽车队列中取出一辆汽车
+// Dequeue 从WAITING汽车队列中取出一辆汽车
 func (waitingBlock *WaitingBlock) Dequeue() (car Car) {
 	waitingBlock.mu.Lock()
 	defer waitingBlock.mu.Unlock()
@@ -336,7 +348,7 @@ func (waitingBlock *WaitingBlock) Dequeue() (car Car) {
 	return car
 }
 
-// Enqueue 将汽车加入等待区
+// Enqueue 将汽车加入WAITING
 func (waitingBlock *WaitingBlock) Enqueue(car Car) error {
 	if WaitingBlockBusy {
 		return errors.New("系统繁忙，请稍后再试")
@@ -347,11 +359,11 @@ func (waitingBlock *WaitingBlock) Enqueue(car Car) error {
 		waitingBlock.Cars = append(waitingBlock.Cars, car)
 		return nil
 	} else {
-		return errors.New("该充电站等待区已满，请稍后再试或更换充电站")
+		return errors.New("该充电站WAITING已满，请稍后再试或更换充电站")
 	}
 }
 
-// Delete 从等待区删除一辆汽车
+// Delete 从WAITING删除一辆汽车
 func (waitingBlock *WaitingBlock) Delete(car Car) error {
 	waitingBlock.mu.Lock()
 	defer waitingBlock.mu.Unlock()
@@ -361,10 +373,10 @@ func (waitingBlock *WaitingBlock) Delete(car Car) error {
 			return nil
 		}
 	}
-	return errors.New("该车辆不在等待区中")
+	return errors.New("该车辆不在WAITING中")
 }
 
-// Update 更新等待区的车辆信息(用户修改了充电请求，重新把用户加入队列)
+// Update 更新WAITING的车辆信息(用户修改了充电请求，重新把用户加入队列)
 func (waitingBlock *WaitingBlock) Update(car Car) error {
 	waitingBlock.mu.Lock()
 	defer waitingBlock.mu.Unlock()
@@ -387,10 +399,10 @@ func (waitingBlock *WaitingBlock) Update(car Car) error {
 			}
 		}
 	}
-	return errors.New("等待区没有该汽车(汽车已经开始充电或者汽车车牌被修改)")
+	return errors.New("WAITING没有该汽车(汽车已经开始充电或者汽车车牌被修改)")
 }
 
-// DispatchCar 等待区线程执行的程序,等待区的汽车持续向充电汽车请求加入汽车
+// DispatchCar WAITING线程执行的程序,WAITING的汽车持续向充电汽车请求加入汽车
 func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation) {
 	for {
 		var minIndex int
@@ -408,7 +420,7 @@ func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation) {
 			}
 		}
 		if hasFree {
-			// 从等待区中取出汽车
+			// 从WAITING中取出汽车
 			for _, currentCar := range waitingBlock.Cars {
 				fmt.Println(currentCar)
 				minIndex = limits.INT_MAX
@@ -422,37 +434,37 @@ func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation) {
 					}
 				}
 
+				// 访问临界资源，给临界资源上锁
+				FreePileMutex[station.StationId].Lock()
 				if minIndex != limits.INT_MAX && FreePile[station.StationId][minIndex] > 0 {
 					// 更新数据库里面的订单信息
-					// 修改订单在数据库里面的状态，从等待区变成队列区
+					// 修改订单在数据库里面的状态，从WAITING变成DISPATCHED
 					CarNum[currentCar.Mode][station.StationId] -= 1
 
-					var currentOrder user.Order
+					var currentOrder system.Order
 					for i := 0; i < 5; i++ {
-						tx := global.GVA_DB.Model(&user.Order{}).Where("car_id = ? AND state <> '已完成'", currentCar.CarId).First(&currentOrder)
+						tx := global.GVA_DB.Model(&system.Order{}).Where("car_id = ? AND state <> 'FINISHED'", currentCar.CarId).First(&currentOrder)
 						if tx.RowsAffected != 0 {
 							break
 						}
 						time.Sleep(1 * time.Second)
 					}
-					currentOrder.State = "队列区"
+					currentOrder.State = "DISPATCHED"
 					currentOrder.PileId = minIndex // pileId存储的是数据库充电桩表中的充电桩下标
 					global.GVA_DB.Save(&currentOrder)
-					fmt.Println("修改数据库信息，等待区->队列区 car_id = " + currentCar.CarId)
+					fmt.Println("修改数据库信息，WAITING->DISPATCHED car_id = " + currentCar.CarId)
 
 					// 增加充电桩队列的等待时间
 					station.ChargePiles[minIndex].WaitingTime += currentCar.ChargeTime
 
-					// 把空闲数量-1，加锁防止冲突;将汽车从等待区取出加入充电队列
-					FreePileMutex[station.StationId].Lock()
 					fmt.Printf("充电桩%d 剩余空闲 %d\n", minIndex, FreePile[station.StationId][minIndex])
 					FreePile[station.StationId][minIndex] -= 1
-					fmt.Printf("从等待区取出一辆汽车加入充电桩%d\n", minIndex)
-					station.ChargePiles[minIndex].Enqueue(waitingBlock.Dequeue())
+					fmt.Printf("从WAITING取出一辆汽车加入充电桩%d\n", minIndex)
+					station.ChargePiles[minIndex].Enqueue(currentCar)
+					waitingBlock.Dequeue()
 					fmt.Printf("充电桩%d 剩余空闲 %d\n", minIndex, FreePile[station.StationId][minIndex])
-					FreePileMutex[station.StationId].Unlock()
-
 				}
+				FreePileMutex[station.StationId].Unlock()
 			}
 		}
 		// 每5s请求一次
@@ -461,12 +473,19 @@ func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation) {
 }
 
 // GetCarInfoByOrder 从订单中获取车辆信息
-func GetCarInfoByOrder(order user.Order) (car Car) {
-	car.ChargeTime = order.Kwh / Power[Mode[order.ChargeType]]
+func GetCarInfoByOrder(order system.Order) (car Car) {
+	car.ChargeTime = order.ApplyKwh / Power[Mode[order.ChargeType]]
 	car.Mode = Mode[order.ChargeType]
 	CarNum[order.StationId-1][car.Mode] += 1
 	car.QueueId = QueuePrefix[car.Mode] + strconv.Itoa(CarNum[order.StationId-1][car.Mode])
-	car.Energy = order.Kwh
-	car.CarId = order.CarId
+	car.Energy = order.ApplyKwh
+	if order.CarId != "" {
+		car.CarId = order.CarId
+	} else {
+		var carId string
+		global.GVA_DB.Model(&system.Order{}).Select("car_id").First(&carId, "id = ?", order.ID)
+		car.CarId = carId
+	}
+
 	return car
 }

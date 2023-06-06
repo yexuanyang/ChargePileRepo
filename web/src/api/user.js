@@ -1,11 +1,35 @@
-import service from '@/utils/request'
+import service, { bonusService } from '@/utils/request'
 // @Summary 用户登录
 // @Produce  application/json
-// @Param data body {username:"string",password:"string"}
+// @Param data body {account:"string",password:"string"}
 // @Router /client/login [post]
 export const login = (data) => {
+  return bonusService({
+    url: '/client/login',
+    method: 'post',
+    data: data
+  })
+}
+
+export const localLogin = (data) => {
   return service({
     url: '/client/login',
+    method: 'post',
+    data: data
+  })
+}
+
+export const adminLogin = (data) => {
+  return bonusService({
+    url: '/admin/login',
+    method: 'post',
+    data: data
+  })
+}
+
+export const localAdminLogin = (data) => {
+  return service({
+    url: '/admin/login',
     method: 'post',
     data: data
   })
@@ -26,10 +50,18 @@ export const captcha = (data) => {
 // @Summary 用户注册
 // @Produce  application/json
 // @Param data body {username:"string",password:"string"}
-// @Router /base/resige [post]
+// @Router /client/register [post]
 export const register = (data) => {
+  return bonusService({
+    url: '/client/register',
+    method: 'post',
+    data: data
+  })
+}
+
+export const localRegister = (data) => {
   return service({
-    url: '/user/admin_register',
+    url: '/client/register',
     method: 'post',
     data: data
   })
@@ -41,7 +73,15 @@ export const register = (data) => {
 // @Router /user/changePassword [post]
 export const changePassword = (data) => {
   return service({
-    url: '/user/changePassword',
+    url: '/client/changePassword',
+    method: 'post',
+    data: data
+  })
+}
+
+export const changeInformation2 = (data) => {
+  return bonusService({
+    url: '/client/index/information',
     method: 'post',
     data: data
   })
@@ -57,7 +97,7 @@ export const changePassword = (data) => {
 // @Router /user/getUserList [post]
 export const getUserList = (data) => {
   return service({
-    url: '/user/getUserList',
+    url: '/client/getUserList',
     method: 'post',
     data: data
   })
@@ -73,7 +113,7 @@ export const getUserList = (data) => {
 // @Router /user/setUserAuthority [post]
 export const setUserAuthority = (data) => {
   return service({
-    url: '/user/setUserAuthority',
+    url: '/client/setUserAuthority',
     method: 'post',
     data: data
   })
@@ -89,7 +129,7 @@ export const setUserAuthority = (data) => {
 // @Router /user/deleteUser [delete]
 export const deleteUser = (data) => {
   return service({
-    url: '/user/deleteUser',
+    url: '/client/deleteUser',
     method: 'delete',
     data: data
   })
@@ -105,7 +145,7 @@ export const deleteUser = (data) => {
 // @Router /user/setUserInfo [put]
 export const setUserInfo = (data) => {
   return service({
-    url: '/user/setUserInfo',
+    url: '/client/setUserInfo',
     method: 'put',
     data: data
   })
@@ -121,7 +161,7 @@ export const setUserInfo = (data) => {
 // @Router /user/setSelfInfo [put]
 export const setSelfInfo = (data) => {
   return service({
-    url: '/user/setSelfInfo',
+    url: '/client/setSelfInfo',
     method: 'put',
     data: data
   })
@@ -137,7 +177,7 @@ export const setSelfInfo = (data) => {
 // @Router /user/setUserAuthorities [post]
 export const setUserAuthorities = (data) => {
   return service({
-    url: '/user/setUserAuthorities',
+    url: '/client/setUserAuthorities',
     method: 'post',
     data: data
   })
@@ -152,14 +192,21 @@ export const setUserAuthorities = (data) => {
 // @Router /user/getUserInfo [get]
 export const getUserInfo = () => {
   return service({
-    url: '/user/getUserInfo',
+    url: '/client/getUserInfo',
+    method: 'get',
+  })
+}
+
+export const getUserInfo_2 = () => {
+  return bonusService({
+    url: '/client/index/information',
     method: 'get',
   })
 }
 
 export const resetPassword = (data) => {
   return service({
-    url: '/user/resetPassword',
+    url: '/client/resetPassword',
     method: 'post',
     data: data
   })

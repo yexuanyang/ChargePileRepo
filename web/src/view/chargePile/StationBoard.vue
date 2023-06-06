@@ -37,12 +37,12 @@
             </el-col>
             <el-col :span="6" class="gva-data-row">
               <div>
-                <el-statistic title="站点数目" group-separator="," :value="value2" />
+                <el-statistic title="充电桩数目" group-separator="," :value="dataStatistic.pileNum" />
               </div>
             </el-col>
             <el-col :span="6" class="gva-data-row">
               <div>
-                <el-statistic title="站点数目" group-separator="," :value="value2" />
+                <el-statistic title="充电站内汽车数量" group-separator="," :value="dataStatistic.unFinishedNum" />
               </div>
             </el-col>
           </el-row>
@@ -89,6 +89,8 @@ import {reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {getChargeStationList} from '@/api/chargeStation'
 import MapContainer from "@/view/chargePile/MapContainer.vue";
+import { getChargePileList} from "@/api/chargePile";
+import { getUnFinishedOrderNumber} from "@/api/order";
 
 const dialogMapVisible = ref(false)
 
@@ -127,7 +129,8 @@ const toolCards = ref([
 const dataStatistic = reactive({
   stationNum: 0,
   userNum: 0,
-
+  pileNum: 0,
+  unFinishedNum: 0,
 })
 const getTableData = async() => {
   const res = await getUserList({ page: 1, pageSize: 10 })
@@ -141,9 +144,23 @@ const getStationData = async() => {
     dataStatistic.stationNum = res.data.total
   }
 }
+const getChargePileData = async() => {
+  const res = await getChargePileList()
+  if (res.code === 0) {
+    dataStatistic.pileNum = res.data.total
+  }
+}
+const getOrderData = async() => {
+  const res = await getUnFinishedOrderNumber()
+  if (res.code === 0){
+    dataStatistic.unFinishedNum = res.data
+  }
+}
 
 getTableData()
 getStationData()
+getChargePileData()
+getOrderData()
 
 const router = useRouter()
 

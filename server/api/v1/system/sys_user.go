@@ -1,9 +1,6 @@
 package system
 
 import (
-	"strconv"
-	"time"
-
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
@@ -11,9 +8,9 @@ import (
 	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	systemRes "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 )
 
@@ -38,40 +35,58 @@ func (b *BaseApi) Login(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-
-	// 判断验证码是否开启
-	openCaptcha := global.GVA_CONFIG.Captcha.OpenCaptcha               // 是否开启防爆次数
-	openCaptchaTimeOut := global.GVA_CONFIG.Captcha.OpenCaptchaTimeOut // 缓存超时时间
-	v, ok := global.BlackCache.Get(key)
-	if !ok {
-		global.BlackCache.Set(key, 1, time.Second*time.Duration(openCaptchaTimeOut))
-	}
-
-	var oc bool = openCaptcha == 0 || openCaptcha < interfaceToInt(v)
-
-	if !oc || store.Verify(l.CaptchaId, l.Captcha, true) {
-		u := &system.SysUser{Username: l.Username, Password: l.Password}
-		user, err := userService.Login(u)
-		if err != nil {
-			global.GVA_LOG.Error("登陆失败! 用户名不存在或者密码错误!", zap.Error(err))
-			// 验证码次数+1
-			global.BlackCache.Increment(key, 1)
-			response.FailWithMessage("用户名不存在或者密码错误", c)
-			return
-		}
-		if user.Enable != 1 {
-			global.GVA_LOG.Error("登陆失败! 用户被禁止登录!")
-			// 验证码次数+1
-			global.BlackCache.Increment(key, 1)
-			response.FailWithMessage("用户被禁止登录", c)
-			return
-		}
-		b.TokenNext(c, *user)
+	u := &system.SysUser{Username: l.Username, Password: l.Password}
+	user, err := userService.Login(u)
+	if err != nil {
+		global.GVA_LOG.Error("登陆失败! 用户名不存在或者密码错误!", zap.Error(err))
+		// 验证码次数+1
+		global.BlackCache.Increment(key, 1)
+		response.FailWithMessage("用户名不存在或者密码错误", c)
 		return
 	}
-	// 验证码次数+1
-	global.BlackCache.Increment(key, 1)
-	response.FailWithMessage("验证码错误", c)
+	if user.Enable != 1 {
+		global.GVA_LOG.Error("登陆失败! 用户被禁止登录!")
+		// 验证码次数+1
+		global.BlackCache.Increment(key, 1)
+		response.FailWithMessage("用户被禁止登录", c)
+		return
+	}
+	b.TokenNext(c, *user)
+	return
+}
+
+func (b *BaseApi) AdminLogin(c *gin.Context) {
+	var l systemReq.Login
+	err := c.ShouldBindJSON(&l)
+	key := c.ClientIP()
+
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = utils.Verify(l, utils.LoginVerify)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	u := &system.SysUser{Username: l.Username, Password: l.Password}
+	user, err := userService.AdminLogin(u)
+	if err != nil {
+		global.GVA_LOG.Error("登陆失败! 用户名不存在或者密码错误!", zap.Error(err))
+		// 验证码次数+1
+		global.BlackCache.Increment(key, 1)
+		response.FailWithMessage("用户名不存在或者密码错误", c)
+		return
+	}
+	if user.Enable != 1 {
+		global.GVA_LOG.Error("登陆失败! 用户被禁止登录!")
+		// 验证码次数+1
+		global.BlackCache.Increment(key, 1)
+		response.FailWithMessage("用户被禁止登录", c)
+		return
+	}
+	b.TokenNext(c, *user)
+	return
 }
 
 // TokenNext 登录以后签发jwt
@@ -92,43 +107,9 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 	}
 	if !global.GVA_CONFIG.System.UseMultipoint {
 		response.OkWithDetailed(systemRes.LoginResponse{
-			User:      user,
-			Token:     token,
-			ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
+			Token: token,
 		}, "登录成功", c)
 		return
-	}
-
-	if jwtStr, err := jwtService.GetRedisJWT(user.Username); err == redis.Nil {
-		if err := jwtService.SetRedisJWT(token, user.Username); err != nil {
-			global.GVA_LOG.Error("设置登录状态失败!", zap.Error(err))
-			response.FailWithMessage("设置登录状态失败", c)
-			return
-		}
-		response.OkWithDetailed(systemRes.LoginResponse{
-			User:      user,
-			Token:     token,
-			ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
-		}, "登录成功", c)
-	} else if err != nil {
-		global.GVA_LOG.Error("设置登录状态失败!", zap.Error(err))
-		response.FailWithMessage("设置登录状态失败", c)
-	} else {
-		var blackJWT system.JwtBlacklist
-		blackJWT.Jwt = jwtStr
-		if err := jwtService.JsonInBlacklist(blackJWT); err != nil {
-			response.FailWithMessage("jwt作废失败", c)
-			return
-		}
-		if err := jwtService.SetRedisJWT(token, user.Username); err != nil {
-			response.FailWithMessage("设置登录状态失败", c)
-			return
-		}
-		response.OkWithDetailed(systemRes.LoginResponse{
-			User:      user,
-			Token:     token,
-			ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
-		}, "登录成功", c)
 	}
 }
 
@@ -138,7 +119,7 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 // @Produce   application/json
 // @Param    data  body      systemReq.Register                                            true  "用户名, 昵称, 密码, 角色ID"
 // @Success  200   {object}  response.Response{data=systemRes.SysUserResponse,msg=string}  "用户注册账号,返回包括用户信息"
-// @Router   /user/admin_register [post]
+// @Router   /client/register [post]
 func (b *BaseApi) Register(c *gin.Context) {
 	var r systemReq.Register
 	err := c.ShouldBindJSON(&r)
@@ -146,25 +127,40 @@ func (b *BaseApi) Register(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+
 	err = utils.Verify(r, utils.RegisterVerify)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	var authorities []system.SysAuthority
-	for _, v := range r.AuthorityIds {
-		authorities = append(authorities, system.SysAuthority{
-			AuthorityId: v,
-		})
+	r.AuthorityId = 8881
+	r.AuthorityIds = []uint{8881}
+	user := &system.SysUser{
+		Username:    r.Username,
+		NickName:    r.NickName,
+		Password:    r.Password,
+		HeaderImg:   "",
+		AuthorityId: 8881,
+		Enable:      1,
+		Phone:       "",
+		Email:       "",
 	}
-	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email}
 	userReturn, err := userService.Register(*user)
 	if err != nil {
 		global.GVA_LOG.Error("注册失败!", zap.Error(err))
-		response.FailWithDetailed(systemRes.SysUserResponse{User: userReturn}, "注册失败", c)
+		response.FailWithDetailed(gin.H{"token": ""}, "注册失败", c)
 		return
 	}
-	response.OkWithDetailed(systemRes.SysUserResponse{User: userReturn}, "注册成功", c)
+	j := &utils.JWT{SigningKey: []byte(global.GVA_CONFIG.JWT.SigningKey)} // 唯一签名
+	claims := j.CreateClaims(systemReq.BaseClaims{
+		UUID:        userReturn.UUID,
+		ID:          userReturn.ID,
+		NickName:    userReturn.NickName,
+		Username:    userReturn.Username,
+		AuthorityId: userReturn.AuthorityId,
+	})
+	token, err := j.CreateToken(claims)
+	response.OkWithDetailed(gin.H{"token": token}, "注册成功", c)
 }
 
 // ChangePassword
@@ -435,6 +431,40 @@ func (b *BaseApi) GetUserInfo(c *gin.Context) {
 		return
 	}
 	response.OkWithDetailed(gin.H{"userInfo": ReqUser}, "获取成功", c)
+}
+
+func (b *BaseApi) GetUserInfo2(c *gin.Context) {
+	uid := utils.GetUserID(c)
+	ReqUser, err := userService.GetUserInfo2(uid)
+	if err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+		return
+	}
+	carResponse := make([]systemRes.CarResponse, 0, len(ReqUser))
+	for _, item := range ReqUser {
+		userid := strconv.Itoa(int(item.UserId))
+		carResponse = append(carResponse, systemRes.CarResponse{CarID: strconv.Itoa(int(item.ID)), Name: &item.CarName, PowerCapacity: item.BatteryCapacity,
+			PowerCurrent: 0.0, UserID: &userid})
+	}
+	response.OkWithDetailed(gin.H{"id": ReqUser[0].UserId, "account": ReqUser[0].User.Username, "name": ReqUser[0].User.NickName, "carArray": carResponse}, "获取成功", c)
+}
+
+func (b *BaseApi) UpdateUserInfo2(c *gin.Context) {
+	var updateRequest systemReq.ChangeUserInfo2
+	err := c.ShouldBindJSON(&updateRequest)
+	updateRequest.ID = utils.GetUserUuid(c)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = userService.UpdateUserInfo2(updateRequest)
+	if err != nil {
+		global.GVA_LOG.Error(err.Error(), zap.Error(err))
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	response.OkWithMessage("修改成功", c)
 }
 
 // ResetPassword

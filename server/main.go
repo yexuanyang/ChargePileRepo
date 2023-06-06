@@ -18,7 +18,7 @@ import (
 // @description                 This is a sample Server pets
 // @securityDefinitions.apikey  ApiKeyAuth
 // @in                          header
-// @name                        x-token
+// @name                        token
 // @BasePath                    /
 func main() {
 	global.GVA_VP = core.Viper() // 初始化Viper
@@ -42,5 +42,6 @@ func main() {
 			go user.ChargeStations[i].ChargePiles[j].Charging(&user.ChargeStations[i])
 		}
 	}
+
 	core.RunWindowsServer()
 }

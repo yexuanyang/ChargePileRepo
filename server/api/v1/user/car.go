@@ -4,8 +4,8 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user"
-	userReq "github.com/flipped-aurora/gin-vue-admin/server/model/user/request"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	userReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
@@ -28,7 +28,7 @@ var carInfoService = service.ServiceGroupApp.UserServiceGroup.CarService
 // @Router /carInfo/createCar [post]
 func (carInfoApi *CarApi) CreateCar(c *gin.Context) {
 	claims, err := utils.GetClaims(c)
-	var carInfo user.CreateCar
+	var carInfo system.CreateCar
 	err = c.ShouldBindJSON(&carInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -41,11 +41,32 @@ func (carInfoApi *CarApi) CreateCar(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	var carModel = user.Car{
-		UserId:          int(claims.BaseClaims.ID),
-		CarId:           carInfo.CarId,
+	var carModel = system.Car{
+		UserId:          claims.BaseClaims.ID,
+		CarName:         carInfo.CarId,
 		BatteryCapacity: carInfo.BatteryCapacity,
 		CarBoard:        carInfo.CarBoard,
+	}
+	if err := carInfoService.CreateCar(&carModel); err != nil {
+		global.GVA_LOG.Error("创建失败!", zap.Error(err))
+		response.FailWithMessage("创建失败", c)
+	} else {
+		response.OkWithMessage("创建成功", c)
+	}
+}
+
+func (carInfoApi *CarApi) CreateCar2(c *gin.Context) {
+	id := utils.GetUserID(c)
+	var carInfo userReq.CarAdd
+	err := c.ShouldBindJSON(&carInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	var carModel = system.Car{
+		UserId:          id,
+		CarName:         *carInfo.Name,
+		BatteryCapacity: *carInfo.PowerCapacity,
 	}
 	if err := carInfoService.CreateCar(&carModel); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
@@ -65,7 +86,7 @@ func (carInfoApi *CarApi) CreateCar(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
 // @Router /carInfo/deleteCar [delete]
 func (carInfoApi *CarApi) DeleteCar(c *gin.Context) {
-	var carInfo user.Car
+	var carInfo system.Car
 	err := c.ShouldBindJSON(&carInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -113,7 +134,7 @@ func (carInfoApi *CarApi) DeleteCarByIds(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"更新成功"}"
 // @Router /carInfo/updateCar [put]
 func (carInfoApi *CarApi) UpdateCar(c *gin.Context) {
-	var carInfo user.Car
+	var carInfo system.Car
 	err := c.ShouldBindJSON(&carInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -135,6 +156,21 @@ func (carInfoApi *CarApi) UpdateCar(c *gin.Context) {
 	}
 }
 
+func (carInfoApi *CarApi) UpdateCar2(c *gin.Context) {
+	var carInfo userReq.CarUpdate
+	err := c.ShouldBindJSON(&carInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if err := carInfoService.UpdateCar2(carInfo); err != nil {
+		global.GVA_LOG.Error("更新失败!", zap.Error(err))
+		response.FailWithMessage("更新失败", c)
+	} else {
+		response.OkWithMessage("更新成功", c)
+	}
+}
+
 // FindCar 用id查询Car
 // @Tags Car
 // @Summary 用id查询Car
@@ -145,7 +181,7 @@ func (carInfoApi *CarApi) UpdateCar(c *gin.Context) {
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
 // @Router /carInfo/findCar [get]
 func (carInfoApi *CarApi) FindCar(c *gin.Context) {
-	var carInfo user.Car
+	var carInfo system.Car
 	err := c.ShouldBindQuery(&carInfo)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
@@ -192,7 +228,7 @@ func (carInfoApi *CarApi) GetCarListByUserId(c *gin.Context) {
 	claims, err := utils.GetClaims(c)
 	var pageInfo userReq.CarSearch
 	err = c.ShouldBindQuery(&pageInfo)
-	pageInfo.Car.UserId = int(claims.BaseClaims.ID)
+	pageInfo.Car.UserId = claims.BaseClaims.ID
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -207,5 +243,15 @@ func (carInfoApi *CarApi) GetCarListByUserId(c *gin.Context) {
 			Page:     pageInfo.Page,
 			PageSize: pageInfo.PageSize,
 		}, "获取成功", c)
+	}
+}
+
+func (carInfoApi *CarApi) GetCarListByUserId2(c *gin.Context) {
+	id := utils.GetUserID(c)
+	if list, _, err := carInfoService.GetCarInfoList2(id); err != nil {
+		global.GVA_LOG.Error("获取失败!", zap.Error(err))
+		response.FailWithMessage("获取失败", c)
+	} else {
+		response.OkWithData(list, c)
 	}
 }

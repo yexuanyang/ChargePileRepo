@@ -16,7 +16,7 @@ type IsOpenRequest struct {
 }
 
 // UpdateChargePileByIds 根据ID更新数据库开关
-func (PileManageApi) UpdateChargePileByIds(c *gin.Context) { //todo 故障调度还是有bug
+func (PileManageApi) UpdateChargePileByIds(c *gin.Context) {
 	var cr IsOpenRequest
 	err := c.ShouldBindJSON(&cr)
 	if err != nil {

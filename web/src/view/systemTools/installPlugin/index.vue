@@ -4,7 +4,7 @@
       class="upload-demo"
       drag
       :action="`${path}/autoCode/installPlugin`"
-      :headers="{'x-token':userStore.token}"
+      :headers="{'token':userStore.token}"
       :show-file-list="false"
       :on-success="handleSuccess"
       :on-error="handleSuccess"

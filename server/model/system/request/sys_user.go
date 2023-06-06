@@ -2,13 +2,14 @@ package request
 
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	uuid "github.com/satori/go.uuid"
 )
 
 // Register User register structure
 type Register struct {
-	Username     string `json:"userName" example:"用户名"`
-	Password     string `json:"passWord" example:"密码"`
-	NickName     string `json:"nickName" example:"昵称"`
+	Username     string `json:"account" example:"用户名"`
+	Password     string `json:"password" example:"密码"`
+	NickName     string `json:"name" example:"昵称"`
 	HeaderImg    string `json:"headerImg" example:"头像链接"`
 	AuthorityId  uint   `json:"authorityId" swaggertype:"string" example:"int 角色id"`
 	Enable       int    `json:"enable" swaggertype:"string" example:"int 是否启用"`
@@ -19,10 +20,8 @@ type Register struct {
 
 // User login structure
 type Login struct {
-	Username  string `json:"username"`  // 用户名
-	Password  string `json:"password"`  // 密码
-	Captcha   string `json:"captcha"`   // 验证码
-	CaptchaId string `json:"captchaId"` // 验证码ID
+	Username string `json:"account"`  // 用户名
+	Password string `json:"password"` // 密码
 }
 
 // Modify password structure
@@ -53,4 +52,11 @@ type ChangeUserInfo struct {
 	SideMode     string                `json:"sideMode"  gorm:"comment:用户侧边主题"`                                                      // 用户侧边主题
 	Enable       int                   `json:"enable" gorm:"comment:冻结用户"`                                                           //冻结用户
 	Authorities  []system.SysAuthority `json:"-" gorm:"many2many:sys_user_authority;"`
+}
+
+type ChangeUserInfo2 struct {
+	ID          uuid.UUID `gorm:"primarykey"`
+	OldPassword string    `json:"old_password"`
+	NewPassword string    `json:"new_password"`
+	Name        string    `json:"name"`
 }

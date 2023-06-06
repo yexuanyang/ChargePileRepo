@@ -41,7 +41,7 @@ cors:
   whitelist:
   - allow-origin: example1.com
     allow-methods: POST, GET
-    allow-headers: Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,X-Token,X-User-Id
+    allow-headers: Content-Type,AccessToken,X-CSRF-Token, Authorization, Token,token,X-User-Id
     expose-headers: Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers,
       Content-Type
     allow-credentials: true

@@ -17,5 +17,4 @@ type ServiceGroup struct {
 	DictionaryDetailService
 	AuthorityBtnService
 	ChatGptService
-	ChargePileService
 }

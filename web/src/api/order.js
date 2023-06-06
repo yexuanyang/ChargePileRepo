@@ -1,4 +1,4 @@
-import service from '@/utils/request'
+import service, {bonusService} from '@/utils/request'
 
 // @Tags Order
 // @Summary 创建Order
@@ -16,6 +16,14 @@ export const createOrder = (data) => {
   })
 }
 
+export const createOrder2 = (data) => {
+  return bonusService({
+    url: '/client/index/order',
+    method: 'post',
+    data
+  })
+}
+
 // @Tags Order
 // @Summary 删除Order
 // @Security ApiKeyAuth
@@ -27,6 +35,14 @@ export const createOrder = (data) => {
 export const deleteOrder = (data) => {
   return service({
     url: '/order/deleteOrder',
+    method: 'delete',
+    data
+  })
+}
+
+export const deleteOrder2 = (data) => {
+  return bonusService({
+    url: '/client/index/order',
     method: 'delete',
     data
   })
@@ -64,6 +80,14 @@ export const updateOrder = (data) => {
   })
 }
 
+export const updateOrder2 = (data) => {
+  return bonusService({
+    url: '/client/index/order',
+    method: 'patch',
+    data
+  })
+}
+
 // @Tags Order
 // @Summary 用id查询Order
 // @Security ApiKeyAuth
@@ -91,6 +115,22 @@ export const findOrder = (params) => {
 export const getOrderList = (params) => {
   return service({
     url: '/order/getOrderList',
+    method: 'get',
+    params
+  })
+}
+
+export const getUnFinishedOrderNumber = (params) => {
+  return service({
+    url: '/order/getUnFinishedOrderNumber',
+    method: 'get',
+    params
+  })
+}
+
+export const getOrderListByUserId2 = (params) => {
+  return bonusService({
+    url: '/client/index/order',
     method: 'get',
     params
   })

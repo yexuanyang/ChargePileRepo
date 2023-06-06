@@ -17,7 +17,6 @@ func Routers() *gin.Engine {
 	InstallPlugin(Router)
 	systemRouter := router.RouterGroupApp.System
 	exampleRouter := router.RouterGroupApp.Example
-	pileRouter := router.RouterGroupApp.Admin
 	// 如果想要不使用nginx代理前端网页，可以修改 web/.env.production 下的
 	// VUE_APP_BASE_API = /
 	// VUE_APP_BASE_PATH = http://localhost
@@ -43,13 +42,13 @@ func Routers() *gin.Engine {
 	{
 		systemRouter.InitBaseRouter(PublicGroup)
 		systemRouter.InitInitRouter(PublicGroup)
+		systemRouter.InitUserRouter(PublicGroup)
 	}
 	PrivateGroup := Router.Group(global.GVA_CONFIG.System.RouterPrefix)
 	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
 	{
 		systemRouter.InitApiRouter(PrivateGroup)
 		systemRouter.InitJwtRouter(PrivateGroup)
-		systemRouter.InitUserRouter(PrivateGroup)
 		systemRouter.InitMenuRouter(PrivateGroup)
 		systemRouter.InitSystemRouter(PrivateGroup)
 		systemRouter.InitCasbinRouter(PrivateGroup)
@@ -74,6 +73,7 @@ func Routers() *gin.Engine {
 
 		adminRouter.InitChargeStationRouter(PrivateGroup)
 		adminRouter.InitChargePileRouter(PrivateGroup)
+		adminRouter.InitPileRouter(PrivateGroup)
 	}
 	{
 
@@ -85,8 +85,6 @@ func Routers() *gin.Engine {
 		userRouter.InitCarRouter(PrivateGroup)
 		userRouter.InitOrderRouter(PrivateGroup)
 		userRouter.InitReportRouter(PrivateGroup)
-
-		pileRouter.InitPileRouter(PrivateGroup)
 
 	}
 

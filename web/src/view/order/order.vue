@@ -41,9 +41,9 @@
         <el-table-column align="left" label="日期" width="180" fixed>
           <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
         </el-table-column>
-        <el-table-column align="left" label="订单所属的用户Id" prop="userId" width="200" />
-        <el-table-column align="left" label="充电的车牌号" prop="carId" width="120" />
-        <el-table-column align="left" label="充电类型" prop="chargeType" width="120" />
+        <el-table-column align="left" label="订单所属的用户Id" prop="user_id" width="200" />
+        <el-table-column align="left" label="充电的车牌号" prop="car_id" width="120" />
+        <el-table-column align="left" label="充电类型" prop="mode" width="120" />
         <el-table-column align="left" label="充电费用" prop="chargeCost" width="120" />
         <el-table-column align="left" label="充电度数" prop="kwh" width="120" />
         <el-table-column align="left" label="充电时长" width="180">
@@ -74,8 +74,8 @@
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
       <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="200px">
-        <el-form-item label="订单所属的用户Id:" prop="userId">
-          <el-input v-model.number="formData.userId" :clearable="true" placeholder="请输入" />
+        <el-form-item label="订单所属的用户Id:" prop="user_id">
+          <el-input v-model.number="formData.user_id" :clearable="true" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="充电的车牌号:" prop="carId">
           <el-input v-model="formData.carId" :clearable="true" placeholder="请输入" />
@@ -134,7 +134,7 @@ import {
   deleteOrderByIds,
   updateOrder,
   findOrder,
-  getOrderList
+  getOrderList, getOrderListByUserId2, deleteOrder2,
 } from '@/api/order'
 
 // 全量引入格式化工具 请按需保留
@@ -144,7 +144,7 @@ import { ref, reactive } from 'vue'
 
 // 自动化生成的字典（可能为空）以及字段
 const formData = ref({
-  userId: 0,
+  user_id: 0,
   carId: '',
   chargeCost: 0,
   kwh: 0,
@@ -158,7 +158,7 @@ const formData = ref({
 
 // 验证规则
 const rule = reactive({
-  userId: [{
+  user_id: [{
     required: true,
     message: '',
     trigger: ['input', 'blur'],
@@ -226,7 +226,7 @@ const handleCurrentChange = (val) => {
 }
 
 // 查询
-const getTableData = async () => {
+const getTableData = async() => {
   const table = await getOrderList({ page: page.value, pageSize: pageSize.value, ...searchInfo.value })
   if (table.code === 0) {
     tableData.value = table.data.list
@@ -314,7 +314,7 @@ const updateOrderFunc = async (row) => {
 
 // 删除行
 const deleteOrderFunc = async (row) => {
-  const res = await deleteOrder({ ID: row.ID })
+  const res = await deleteOrder2({ ID: row.ID })
   if (res.code === 0) {
     ElMessage({
       type: 'success',
@@ -323,7 +323,7 @@ const deleteOrderFunc = async (row) => {
     if (tableData.value.length === 1 && page.value > 1) {
       page.value--
     }
-    getTableData()
+    await getTableData()
   }
 }
 
@@ -340,7 +340,7 @@ const openDialog = () => {
 const closeDialog = () => {
   dialogFormVisible.value = false
   formData.value = {
-    userId: 0,
+    user_id: 0,
     carId: '',
     chargeCost: 0,
     kwh: 0,

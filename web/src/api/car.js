@@ -1,4 +1,4 @@
-import service from '@/utils/request'
+import service, {bonusService} from '@/utils/request'
 
 // @Tags Car
 // @Summary 创建Car
@@ -11,6 +11,14 @@ import service from '@/utils/request'
 export const createCar = (data) => {
   return service({
     url: '/carInfo/createCar',
+    method: 'post',
+    data
+  })
+}
+
+export const createCar2 = (data) => {
+  return bonusService({
+    url: '/client/index/car',
     method: 'post',
     data
   })
@@ -64,6 +72,15 @@ export const updateCar = (data) => {
   })
 }
 
+
+export const updateCar2 = (data) => {
+  return bonusService({
+    url: '/client/index/car',
+    method: 'patch',
+    data
+  })
+}
+
 // @Tags Car
 // @Summary 用id查询Car
 // @Security ApiKeyAuth
@@ -99,6 +116,14 @@ export const getCarList = (params) => {
 export const getCarListByUserId = (params) => {
   return service({
     url: '/carInfo/getCarListByUserId',
+    method: 'get',
+    params
+  })
+}
+
+export const getCarListByUserId2 = (params) => {
+  return bonusService({
+    url: '/client/index/car',
     method: 'get',
     params
   })

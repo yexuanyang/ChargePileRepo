@@ -14,7 +14,7 @@ func (s *PileManageRouter) InitPileRouter(Router *gin.RouterGroup) {
 	pileRouterApi := v1.ApiGroupApp.AdminApiGroup.PileManageApi
 	{
 		pileRouter.GET("manage", pileRouterApi.GetPileList)
-		pileRouter.POST("manage_carList", pileRouterApi.GetPileCarList)
+		//pileRouter.POST("manage_carList", pileRouterApi.GetPileCarList)
 		pileRouter.POST("manage_isOpen", pileRouterApi.UpdateChargePileByIds)
 	}
 }

@@ -12,3 +12,12 @@ type ChargePileSearch struct {
 	EndCreatedAt   *time.Time `json:"endCreatedAt" form:"endCreatedAt"`
 	request.PageInfo
 }
+
+type ChangeChargePileRequest struct {
+	Mode        string   `json:"mode"`         // 开关模式，SWITCHON - 打开; SWITCHOFF - 关闭
+	SwitchArray []string `json:"switch_array"` // 开关的充电站数组
+}
+
+type NormalChargeRequest struct {
+	ChargeId string `json:"charge_id" form:"charge_id"`
+}

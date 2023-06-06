@@ -2,8 +2,8 @@ package user
 
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/user/request"
-	userRes "github.com/flipped-aurora/gin-vue-admin/server/model/user/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
+	userRes "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/service"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"

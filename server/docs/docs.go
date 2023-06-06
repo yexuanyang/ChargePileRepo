@@ -6823,7 +6823,7 @@ const docTemplate = `{
     "securityDefinitions": {
         "ApiKeyAuth": {
             "type": "apiKey",
-            "name": "x-token",
+            "name": "token",
             "in": "header"
         }
     }
