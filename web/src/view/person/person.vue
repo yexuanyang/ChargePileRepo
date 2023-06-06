@@ -39,9 +39,9 @@
                   <close />
                 </el-icon>
               </p>
-              <p class="person-info">这个家伙很懒，什么都没有留下</p>
+              <p class="person-Info">这个家伙很懒，什么都没有留下</p>
             </div>
-            <div class="user-information">
+            <div class="user-Information">
               <ul>
                 <li>
                   <el-icon>
@@ -460,13 +460,13 @@ const changeEmail = async() => {
         align-items: center;
         font-size: 26px;
       }
-      .person-info {
+      .person-Info {
         margin-top: 6px;
         font-size: 14px;
         color: #999;
       }
     }
-    .user-information {
+    .user-Information {
       width: 100%;
       height: 100%;
       text-align: left;

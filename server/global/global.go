@@ -1,10 +1,9 @@
 package global
 
 import (
-	"sync"
-
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/timer"
 	"github.com/songzhibin97/gkit/cache/local_cache"
+	"sync"
 
 	"golang.org/x/sync/singleflight"
 

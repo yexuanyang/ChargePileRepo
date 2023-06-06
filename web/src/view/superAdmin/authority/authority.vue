@@ -227,7 +227,7 @@ const deleteAuth = (row) => {
     })
     .catch(() => {
       ElMessage({
-        type: 'info',
+        type: 'Info',
         message: '已取消删除'
       })
     })

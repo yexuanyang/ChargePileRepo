@@ -106,13 +106,13 @@
             </el-form>
             <el-table :data="tableData" border show-summary :summary-method="getSummaries"
                 style="width: 100%;display:inline-block;" :default-sort="{ prop: 'userId', order: 'descending' }">
-                <el-table-column align="left" label="日期" width="180" fixed prop="CreatedAt" sortable>
+                <el-table-column align="left" label="日期" width="180" fixed prop="CreatedAt">
                     <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
                 </el-table-column>
                 <el-table-column align="left" label="充电的车牌号" prop="carId" width="120" />
                 <el-table-column align="left" label="充电类型" prop="chargeType" width="120" />
                 <el-table-column align="left" label="充电费用" prop="chargeCost" width="120" />
-                <el-table-column align="left" label="充电度数" prop="kwh" width="120" fixed sortable />
+                <el-table-column align="left" label="充电度数" prop="kwh" width="120" fixed />
                 <el-table-column align="left" label="充电时长" width="180">
                     <template #default="scope">{{ scope.row.time }}</template>
                 </el-table-column>
@@ -124,7 +124,7 @@
                 <el-table-column align="left" label="结束充电时间" width="180">
                     <template #default="scope">{{ formatDate(scope.row.stopAt) }}</template>
                 </el-table-column>
-                <el-table-column align="left" label="总花费" prop="totalCost" width="120" fixed="right" sortable />
+                <el-table-column align="left" label="总花费" prop="totalCost" width="120" fixed="right" />
             </el-table>
 
             <div class="demo-pagination-block">
@@ -480,8 +480,6 @@ const getPictureData = async () => {
     // 用户选择了起始日期和结束日期就指定，否则默认一周
     const start = searchInfo.value.startCreatedAt == null ? lastWeek : searchInfo.value.startCreatedAt
     const end = searchInfo.value.endCreatedAt == null ? now : searchInfo.value.endCreatedAt
-    console.log(start)
-    console.log(end)
     const resData = await getDurationReportInfo({ date: start, endDate: end })
     if (resData.code == 0) {
         pictureData.value = resData.data
@@ -498,7 +496,6 @@ const getPictureData = async () => {
         }
         dataSet.value.push(tempList)
     }
-    console.log(dataSet.value)
     setOption(dataSet.value)
 }
 

@@ -21,7 +21,7 @@
               v-if="!item.hidden"
               :key="item.name"
               :is-collapse="isCollapse"
-              :router-info="item"
+              :router-Info="item"
               :theme="theme"
             />
           </template>
@@ -140,7 +140,7 @@ const selectMenuItem = (index, _, ele, aaa) => {
     height: 100%;
   }
 }
-.menu-info {
+.menu-Info {
   .menu-contorl {
     line-height: 52px;
     font-size: 20px;

@@ -54,7 +54,7 @@ const toService = () => {
 
   ::v-deep(.el-input__wrapper) {
     .el-input__inner {
-      border-bottom: 1px solid var(--el-color-info-light-7);
+      border-bottom: 1px solid var(--el-color-Info-light-7);
     }
 
     box-shadow: none !important;

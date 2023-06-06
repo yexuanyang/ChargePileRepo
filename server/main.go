@@ -1,11 +1,11 @@
 package main
 
 import (
-	"go.uber.org/zap"
-
+	"github.com/flipped-aurora/gin-vue-admin/server/api/v1/user"
 	"github.com/flipped-aurora/gin-vue-admin/server/core"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/initialize"
+	"go.uber.org/zap"
 )
 
 //go:generate go env -w GO111MODULE=on
@@ -33,6 +33,14 @@ func main() {
 		// 程序结束前关闭数据库链接
 		db, _ := global.GVA_DB.DB()
 		defer db.Close()
+	}
+	// 初始化调度信息
+	user.InitStation()
+	for i := range user.ChargeStations {
+		go user.ChargeStations[i].Waiting.DispatchCar(&user.ChargeStations[i])
+		for j := range user.ChargeStations[i].ChargePiles {
+			go user.ChargeStations[i].ChargePiles[j].Charging(&user.ChargeStations[i])
+		}
 	}
 	core.RunWindowsServer()
 }

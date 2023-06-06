@@ -57,7 +57,7 @@ We are excited that you are interested in contributing to gin-vue-admin. Before 
 
 - Fork this repository to your own account. Do not create branches here.
 
-- Commit info should be formatted as `[File Name]: Info about commit.` (e.g. `README.md: Fix xxx bug`)
+- Commit Info should be formatted as `[File Name]: Info about commit.` (e.g. `README.md: Fix xxx bug`)
 
 - <font color=red>Make sure PRs are created to `develop` branch instead of `master` branch.</font>
 

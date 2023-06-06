@@ -31,26 +31,29 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 	var order user.Order
 	claims, err := utils.GetClaims(c)
 	err = c.ShouldBindJSON(&order)
-	fmt.Println(order.UserId)
 	if order.UserId == 0 {
 		order.UserId = int(claims.BaseClaims.ID)
 	}
+	car := GetCarInfoByOrder(order)
+	err = ChargeStations[order.StationId-1].Waiting.Enqueue(car)
+
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+	order.State = "等待区"
+
 	verify := utils.Rules{
 		"UserId":     {utils.NotEmpty()},
 		"CarId":      {utils.NotEmpty()},
 		"ChargeType": {utils.NotEmpty()},
 		"Kwh":        {utils.NotEmpty()},
-		"PileId":     {utils.NotEmpty()},
-		"StartedAt":  {utils.NotEmpty()},
 	}
 	if err := utils.Verify(order, verify); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+	order.Kwh = 0
 	if err := orderService.CreateOrder(&order); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
@@ -70,11 +73,61 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 // @Router /order/deleteOrder [delete]
 func (orderApi *OrderApi) DeleteOrder(c *gin.Context) {
 	var order user.Order
+
 	err := c.ShouldBindJSON(&order)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+	order, err = orderService.GetOrder(order.ID)
+	fmt.Println(order)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	car := GetCarInfoByOrder(order)
+	CarNum[order.StationId-1][car.Mode] -= 1
+	stationId := order.StationId - 1
+	if order.State == "等待区" {
+		// 将汽车从等待区中移除,订单在数据库中也删除
+		err = ChargeStations[order.StationId].Waiting.Delete(car)
+		if err != nil {
+			response.FailWithMessage(err.Error(), c)
+			return
+		}
+	} else if order.State == "队列区" {
+		currentPile := ChargeStations[stationId].ChargePiles[order.PileId]
+		if order.CarId == currentPile.Cars[0].CarId {
+			// 该汽车正在充电
+			currentPile.mu.Lock()
+			defer currentPile.mu.Unlock()
+
+			currentPile.Cars = append(currentPile.Cars[:0], currentPile.Cars[1:]...) // 将汽车移除
+
+			FreePileMutex[stationId].Lock()
+			defer FreePileMutex[stationId].Unlock()
+			FreePile[stationId][order.PileId] += 1 // 空闲位置+1
+
+			// 向指定的充电桩线程发送提前结束充电请求
+			IsInterrupt[stationId][order.PileId] = true
+			// 数据库中的订单不需要删除
+			// 向前端返回成功即可
+			response.OkWithMessage("删除成功", c)
+			return
+
+		} else {
+			// 汽车不在充电，数据库中的订单也直接删除
+			currentPile.mu.Lock() // 获取当前充电桩的充电队列的锁
+			defer currentPile.mu.Unlock()
+
+			currentPile.Cars = append(currentPile.Cars[:1], currentPile.Cars[2:]...) // 将汽车移除
+
+			FreePileMutex[stationId].Lock()
+			defer FreePileMutex[stationId].Unlock()
+			FreePile[stationId][order.PileId] += 1 // 空闲位置+1
+		}
+	}
+
 	if err := orderService.DeleteOrder(order); err != nil {
 		global.GVA_LOG.Error("删除失败!", zap.Error(err))
 		response.FailWithMessage("删除失败", c)
@@ -123,13 +176,27 @@ func (orderApi *OrderApi) UpdateOrder(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+	claims, err := utils.GetClaims(c)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	if order.UserId == 0 {
+		order.UserId = int(claims.BaseClaims.ID)
+	}
+	if order.ID == 0 {
+		updateCar := GetCarInfoByOrder(order)
+		err = ChargeStations[order.StationId-1].Waiting.Update(updateCar)
+		if err != nil {
+			response.FailWithMessage(err.Error(), c)
+			return
+		}
+	}
 	verify := utils.Rules{
 		"UserId":     {utils.NotEmpty()},
 		"CarId":      {utils.NotEmpty()},
 		"ChargeType": {utils.NotEmpty()},
 		"Kwh":        {utils.NotEmpty()},
-		"PileId":     {utils.NotEmpty()},
-		"StartedAt":  {utils.NotEmpty()},
 	}
 	if err := utils.Verify(order, verify); err != nil {
 		response.FailWithMessage(err.Error(), c)

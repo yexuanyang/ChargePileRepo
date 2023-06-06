@@ -23,7 +23,6 @@
     </div>
     <div class="gva-table-box">
       <div class="gva-btn-list">
-        <el-button type="primary" icon="plus" @click="openDialog">新增</el-button>
         <el-popover v-model:visible="deleteVisible" placement="top" width="160">
           <p>确定要删除吗？</p>
           <div style="text-align: right; margin-top: 8px;">
@@ -74,7 +73,7 @@
       </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
-      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="80px">
+      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="200px">
         <el-form-item label="订单所属的用户Id:" prop="userId">
           <el-input v-model.number="formData.userId" :clearable="true" placeholder="请输入" />
         </el-form-item>
@@ -93,7 +92,7 @@
           <el-input-number v-model="formData.kwh" style="width:100%" :precision="2" :clearable="true" />
         </el-form-item>
         <el-form-item label="充电时长:" prop="time">
-          <el-date-picker v-model="formData.time" type="date" style="width:100%" placeholder="选择日期" :clearable="true" />
+          <el-input-number v-model="formData.time" type="date" style="width:100%" placeholder="输入充电时长（h）" :clearable="true" />
         </el-form-item>
         <el-form-item label="充电桩id:" prop="pileId">
           <el-input v-model.number="formData.pileId" :clearable="true" placeholder="请输入" />
@@ -102,11 +101,11 @@
           <el-input-number v-model="formData.serviceCost" style="width:100%" :precision="2" :clearable="true" />
         </el-form-item>
         <el-form-item label="开始充电时间:" prop="startedAt">
-          <el-date-picker v-model="formData.startedAt" type="date" style="width:100%" placeholder="选择日期"
+          <el-date-picker v-model="formData.startedAt" type="datetime" style="width:100%" placeholder="选择日期"
             :clearable="true" />
         </el-form-item>
         <el-form-item label="结束充电时间:" prop="stopAt">
-          <el-date-picker v-model="formData.stopAt" type="date" style="width:100%" placeholder="选择日期" :clearable="true" />
+          <el-date-picker v-model="formData.stopAt" type="datetime" style="width:100%" placeholder="选择日期" :clearable="true" />
         </el-form-item>
         <el-form-item label="总花费:" prop="totalCost">
           <el-input-number v-model="formData.totalCost" style="width:100%" :precision="2" :clearable="true" />

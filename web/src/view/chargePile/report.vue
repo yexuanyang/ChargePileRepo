@@ -139,13 +139,13 @@ const errorMessage = (message) => {
     })
 }
 const getReportInfo = async () => {
-    const info = await getDurationChargeInfo({ pileId: Number(pileId.value), ...searchInfo.value })
-    if (info.code == 0) {
-        reportInfo.value = info.data
+    const Info = await getDurationChargeInfo({ pileId: Number(pileId.value), ...searchInfo.value })
+    if (Info.code == 0) {
+        reportInfo.value = Info.data
         successMessage()
     }
     else {
-        errorMessage(info.msg)
+        errorMessage(Info.msg)
     }
 }
 const onSubmit = () => {

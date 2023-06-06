@@ -47,15 +47,15 @@ func (userInfoService *UsersService) GetUsers(id uint) (userInfo user.Users, err
 
 // GetUsersInfoList 分页获取Users记录
 // Author [piexlmax](https://github.com/piexlmax)
-func (userInfoService *UsersService) GetUsersInfoList(info userReq.UsersSearch) (list []user.Users, total int64, err error) {
-	limit := info.PageSize
-	offset := info.PageSize * (info.Page - 1)
+func (userInfoService *UsersService) GetUsersInfoList(Info userReq.UsersSearch) (list []user.Users, total int64, err error) {
+	limit := Info.PageSize
+	offset := Info.PageSize * (Info.Page - 1)
 	// 创建db
 	db := global.GVA_DB.Model(&user.Users{})
 	var userInfos []user.Users
 	// 如果有条件搜索 下方会自动创建搜索语句
-	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
-		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
+	if Info.StartCreatedAt != nil && Info.EndCreatedAt != nil {
+		db = db.Where("created_at BETWEEN ? AND ?", Info.StartCreatedAt, Info.EndCreatedAt)
 	}
 	err = db.Count(&total).Error
 	if err != nil {

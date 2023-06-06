@@ -2,7 +2,7 @@
   <div class="previewCode">
     <el-tabs v-model="activeName">
       <el-tab-pane v-for="(item, key) in previewCode" :key="key" :label="key" :name="key">
-        <div :id="key" class="tab-info" />
+        <div :id="key" class="tab-Info" />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -83,7 +83,7 @@ export default {
 
 <style lang="scss">
 .previewCode {
-  .tab-info {
+  .tab-Info {
     height: 50vh;
     background: #fff;
     padding: 0 20px;
