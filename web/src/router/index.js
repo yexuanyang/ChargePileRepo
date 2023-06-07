@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import {createRouter, createWebHashHistory} from 'vue-router'
 
 const routes = [{
   path: '/',
@@ -14,7 +14,6 @@ const routes = [{
   meta: {
     closeTab: true,
   },
-  component: () => import('@/view/error/index.vue')
 }
 ]
 

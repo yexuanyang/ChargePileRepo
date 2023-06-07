@@ -16,7 +16,7 @@ type ChargePile struct {
 	ChargeStationModel ChargeStation `gorm:"foreignKey:StationID;reference:ID" json:"-"`
 	ChargeCost         float64       `json:"chargeCost" form:"chargeCost" gorm:"column:charge_cost"`
 	ServiceCost        float64       `json:"serviceCost" form:"serviceCost" gorm:"column:service_cost"`
-	TotalCost          float64       ` json:"totalCost" form:"totalCost" gorm:"column:total_cost"`
+	TotalCost          float64       `json:"totalCost" form:"totalCost" gorm:"column:total_cost"`
 }
 
 // TableName ChargePile 表名

@@ -1,32 +1,43 @@
 <template>
     <div class="block">
-        <el-form :inline="true" class="demo-form-inline" v-model="searchInfo" @keyup.enter="onSubmit">
-            <el-form-item label="报表时间">
-                <el-date-picker v-model="searchInfo.beginDate" type="datetime" placeholder="选择报表开始时间"
-                    :shortcuts="shortcuts" />
-                ——
-                <el-date-picker v-model="searchInfo.endDate" type="datetime" placeholder="选择报表结束时间"
-                    :shortcuts="shortcuts" />
-            </el-form-item>
-            <el-form-item label="充电桩ID">
-                <el-input v-model="pileId" placeholder="选择生成报表的充电桩ID" />
-            </el-form-item>
-            <el-form-item>
-                <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
-                <el-button icon="refresh" @click="onReset">重置</el-button>
-            </el-form-item>
-        </el-form>
-        <el-row>
-            <el-descriptions class="margin-top" title="充电桩报表" :column="7" :size="size" border>
-                <el-descriptions-item>
-                    <template #label>
+        <div class="gva-search-box">
+            <el-form :inline="true" v-model="searchInfo" class="demo-form-inline" @keyup.enter="onSubmit">
+                <el-form-item label="报表时间">
+                    <el-date-picker
+                        v-model="searchInfo.startCreatedAt"
+                        placeholder="报表开始时间"
+                        type="datetime"
+                        :shortcuts="shortcuts"
+                    />
+                    —
+                    <el-date-picker
+                        v-model="searchInfo.endCreatedAt"
+                        placeholder="报表结束时间"
+                        type="datetime"
+                        :shortcuts="shortcuts"
+                    />
+                </el-form-item>
+                <el-form-item label="充电桩ID">
+                    <el-input v-model="searchInfo.id" placeholder="选择生成报表的充电桩ID"/>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" icon="search" @click="onSubmit">查询</el-button>
+                    <el-button icon="refresh" @click="onReset">重置</el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <div class="gva-card-box">
+            <el-row>
+                <el-descriptions class="margin-top" title="充电桩报表" :column="7" :size="size" border>
+                    <el-descriptions-item>
+                        <template #label>
+                            <div class="cell-item">
+                                充电桩ID
+                            </div>
+                        </template>
                         <div class="cell-item">
-                            充电桩ID
+                            {{ reportInfo.pileId }}
                         </div>
-                    </template>
-                    <div class="cell-item">
-                        {{ reportInfo.pileId }}
-                    </div>
                 </el-descriptions-item>
                 <el-descriptions-item>
                     <template #label>
@@ -88,15 +99,17 @@
                         {{ reportInfo.totalCost }}
                     </div>
                 </el-descriptions-item>
-            </el-descriptions>
-        </el-row>
+                </el-descriptions>
+            </el-row>
+        </div>
     </div>
+
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { getDurationChargeInfo } from '../../api/report';
-import { ElMessage } from 'element-plus';
+import {ref} from 'vue'
+import {getDurationChargeInfo} from '../../api/report';
+import {ElMessage} from 'element-plus';
 
 const searchInfo = ref({})
 const beginDate = ref('')

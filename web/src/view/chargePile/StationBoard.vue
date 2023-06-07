@@ -3,17 +3,21 @@
     <div class="gva-card-box">
       <div class="gva-card gva-top-card">
         <div class="gva-top-card-left">
-          <div class="gva-top-card-left-title">你好 智能充电桩管理员</div>
-          <div class="gva-top-card-left-rows">
-              <el-button type="text" @click="dialogMapVisible = true">地图</el-button>
-              <el-dialog v-model="dialogMapVisible" title="充电站详细地址">
-                  <MapContainer></MapContainer>
-                  <span slot="footer" class="dialog-footer" style="display: flex; justify-content: right">
+            <div class="gva-top-card-left-title">你好 智能充电桩管理员</div>
+            <div class="gva-top-card-left-rows">
+                <div class="card-overview">
+                    <img src="../../assets/chargePile.png">
+                    <i class="fa fa-map" @click="dialogMapVisible = true"></i>
+                    <el-button type="text" @click="dialogMapVisible = true">查看详细地址</el-button>
+                </div>
+                <el-dialog v-model="dialogMapVisible" title="充电站详细地址">
+                    <MapContainer></MapContainer>
+                    <span slot="footer" class="dialog-footer" style="display: flex; justify-content: right">
                       <el-button type="primary" style="margin-top: 10px"
                                  @click="dialogMapVisible = false">确 定</el-button>
                   </span>
-              </el-dialog>
-          </div>
+                </el-dialog>
+            </div>
         </div>
         <img src="@/assets/dashboard.png" class="gva-top-card-right" alt>
       </div>
@@ -37,12 +41,12 @@
             </el-col>
             <el-col :span="6" class="gva-data-row">
               <div>
-                <el-statistic title="充电桩数目" group-separator="," :value="dataStatistic.pileNum" />
+                  <el-statistic title="充电桩数目" group-separator="," :value="dataStatistic.pileNum"/>
               </div>
             </el-col>
             <el-col :span="6" class="gva-data-row">
               <div>
-                <el-statistic title="充电站内汽车数量" group-separator="," :value="dataStatistic.unFinishedNum" />
+                  <el-statistic title="充电站内汽车数量" group-separator="," :value="dataStatistic.unFinishedNum"/>
               </div>
             </el-col>
           </el-row>
@@ -52,9 +56,6 @@
     <div class="gva-card-box">
       <div class="gva-card">
         <div class="bottom-items">
-          <div class="left">
-            <img src="../../assets/chargePile.png">
-          </div>
           <div class="right">
             <el-row :gutter="20">
               <el-col
@@ -89,8 +90,9 @@ import {reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {getChargeStationList} from '@/api/chargeStation'
 import MapContainer from "@/view/chargePile/MapContainer.vue";
-import { getChargePileList} from "@/api/chargePile";
-import { getUnFinishedOrderNumber} from "@/api/order";
+import {getChargePileList} from "@/api/chargePile";
+import {getUnFinishedOrderNumber} from "@/api/order";
+import Icon from "@/view/superAdmin/menu/icon.vue";
 
 const dialogMapVisible = ref(false)
 
@@ -127,34 +129,34 @@ const toolCards = ref([
 ])
 
 const dataStatistic = reactive({
-  stationNum: 0,
-  userNum: 0,
-  pileNum: 0,
-  unFinishedNum: 0,
+    stationNum: 0,
+    userNum: 0,
+    pileNum: 0,
+    unFinishedNum: 0,
 })
-const getTableData = async() => {
-  const res = await getUserList({ page: 1, pageSize: 10 })
-  if (res.code === 0) {
-    dataStatistic.userNum = res.data.total
-  }
+const getTableData = async () => {
+    const res = await getUserList({page: 1, pageSize: 10})
+    if (res.code === 0) {
+        dataStatistic.userNum = res.data.total
+    }
 }
-const getStationData = async() => {
-  const res = await getChargeStationList()
-  if (res.code === 0) {
-    dataStatistic.stationNum = res.data.total
-  }
+const getStationData = async () => {
+    const res = await getChargeStationList()
+    if (res.code === 0) {
+        dataStatistic.stationNum = res.data.total
+    }
 }
-const getChargePileData = async() => {
-  const res = await getChargePileList()
-  if (res.code === 0) {
-    dataStatistic.pileNum = res.data.total
-  }
+const getChargePileData = async () => {
+    const res = await getChargePileList()
+    if (res.code === 0) {
+        dataStatistic.pileNum = res.data.total
+    }
 }
-const getOrderData = async() => {
-  const res = await getUnFinishedOrderNumber()
-  if (res.code === 0){
-    dataStatistic.unFinishedNum = res.data
-  }
+const getOrderData = async () => {
+    const res = await getUnFinishedOrderNumber()
+    if (res.code === 0) {
+        dataStatistic.unFinishedNum = res.data
+    }
 }
 
 getTableData()
@@ -165,7 +167,7 @@ getOrderData()
 const router = useRouter()
 
 const toTarget = (name) => {
-  router.push({ name })
+    router.push({name})
 }
 
 </script>
@@ -175,7 +177,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
 @mixin flex-center {
     display: flex;
     align-items: center;
@@ -183,35 +185,44 @@ export default {
 
 .gva-data-row {
     .el-statistic {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
 
-        .el-statistic__head {
-            font-size: 15px;
-        }
+      .el-statistic__head {
+        font-size: 15px;
+      }
     }
 }
-.bottom-items{
-    display: flex;
+
+.bottom-items {
+  display: flex;
 }
-.left {
+
+.card-overview {
+  display: flex;
+  align-items: center;
+
+  img {
     height: 100px;
     width: 100px;
-    margin-left: 35px;
-
-    img {
-        width: 100%;
-        height: 100%;
-    }
+  }
+  i {
+    font-size: 30px;
+    margin-left: 20px;
+    margin-right: 10px;
+    cursor: pointer;
+  }
 }
 
+
 .right {
-    width: 1000px;
-    &::before{
-        padding-left: 200px;
-    }
+  width: 1000px;
+
+  &::before {
+    padding-left: 200px;
+  }
 }
 
 .page {
