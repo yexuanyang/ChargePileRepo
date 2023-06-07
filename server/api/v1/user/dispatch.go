@@ -51,7 +51,7 @@ const (
 	// ChargeStationNumber 充电站的数量
 	ChargeStationNumber = 2
 	// WaitingAreaSize WAITING大小
-	WaitingAreaSize = 6
+	WaitingAreaSize = 10
 	// ChargingQueueLen 充电队列长度
 	ChargingQueueLen = 2
 	// ServiceCostRate 服务费
@@ -232,7 +232,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 		startTime := time.Now()
 		// 通过随眠模拟充电,写在循环里方便实现删除订单时的提前结束充电
 		var i int
-		for i = 1; i <= int(chargeTime.Seconds()); i++ {
+		for i = 1; i <= int(chargeTime.Seconds()/20); i++ {
 			time.Sleep(time.Second - time.Millisecond)
 			if IsInterrupt[station.StationId][chargePile.PileId] {
 				IsInterrupt[station.StationId][chargePile.PileId] = false
@@ -240,7 +240,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 			}
 		}
 		// 实际充电时间
-		realChargeTime := time.Now().Sub(startTime)
+		realChargeTime := time.Now().Sub(startTime) * 20
 
 		// 修改充电桩的等待时间
 		chargePile.WaitingTime -= car.ChargeTime
@@ -279,7 +279,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 		} else {
 			global.GVA_LOG.Error("订单结束时向充电桩中写入数据时出错")
 		}
-		if i != int(chargeTime.Seconds())+1 {
+		if i != int(chargeTime.Seconds()/20)+1 {
 			// 提前中断，有两种情况，一种是删除订单，一种是充电桩故障
 			// 删除订单需要把state设置为finished
 
@@ -345,6 +345,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 			chargePile.Dequeue()
 			// 队列空闲数+1
 			FreePile[station.StationId][chargePile.PileId] += 1
+			fmt.Printf("充电桩 %d 空闲数量 %d\n", chargePile.PileId, FreePile[station.StationId][chargePile.PileId])
 			FreePileMutex[station.StationId].Unlock()
 
 			currentOrder.State = "FINISHED"
@@ -495,7 +496,7 @@ func (waitingBlock *WaitingBlock) DispatchCar(station *ChargeStation) {
 func GetCarInfoByOrder(order system.Order) (car Car) {
 	car.ChargeTime = order.ApplyKwh / Power[Mode[order.ChargeType]]
 	car.Mode = Mode[order.ChargeType]
-	CarNum[order.StationId-1][car.Mode] += 1
+
 	car.QueueId = QueuePrefix[car.Mode] + strconv.Itoa(CarNum[order.StationId-1][car.Mode])
 	car.Energy = order.ApplyKwh
 	if order.CarId != "" {

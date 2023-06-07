@@ -46,9 +46,6 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 		// 默认充电站是第一个充电站
 		order.StationId = 1
 	}
-	car := GetCarInfoByOrder(order)
-	err = ChargeStations[order.StationId-1].Waiting.Enqueue(car)
-
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
@@ -70,6 +67,9 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
 	} else {
+		car := GetCarInfoByOrder(order)
+		err = ChargeStations[order.StationId-1].Waiting.Enqueue(car)
+		CarNum[order.StationId-1][car.Mode] += 1
 		response.OkWithMessage("创建成功", c)
 	}
 }
