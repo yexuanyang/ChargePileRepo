@@ -274,6 +274,7 @@ func (chargePile *ChargePile) Charging(station *ChargeStation) {
 			cp.ChargeCount += 1
 			cp.ServiceCost += currentOrder.ServiceCost
 			cp.TotalCost += currentOrder.TotalCost
+			cp.ChargeTime += realChargeTime.Hours()
 			global.GVA_DB.Save(&cp)
 		} else {
 			global.GVA_LOG.Error("订单结束时向充电桩中写入数据时出错")

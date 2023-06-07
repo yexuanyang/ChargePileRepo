@@ -6,6 +6,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	userReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
+	"gorm.io/gorm"
 )
 
 type OrderService struct {
@@ -14,6 +15,10 @@ type OrderService struct {
 // CreateOrder 创建Order记录
 // Author [piexlmax](https://github.com/piexlmax)
 func (orderService *OrderService) CreateOrder(order *system.Order) (err error) {
+	var or system.Order
+	if !errors.Is(global.GVA_DB.Where("car_id = ? AND state <> 'FINISHED'", order.CarId).First(&or).Error, gorm.ErrRecordNotFound) {
+		return errors.New("该车辆已经申请充电")
+	}
 	err = global.GVA_DB.Create(order).Error
 	return err
 }

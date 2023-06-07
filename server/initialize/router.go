@@ -33,6 +33,7 @@ func Routers() *gin.Engine {
 	global.GVA_LOG.Info("register swagger handler")
 
 	PublicGroup := Router.Group(global.GVA_CONFIG.System.RouterPrefix)
+	PublicGroup.Use(middleware.Cors())
 	{
 
 		PublicGroup.GET("/health", func(c *gin.Context) {
@@ -45,7 +46,7 @@ func Routers() *gin.Engine {
 		systemRouter.InitUserRouter(PublicGroup)
 	}
 	PrivateGroup := Router.Group(global.GVA_CONFIG.System.RouterPrefix)
-	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler())
+	PrivateGroup.Use(middleware.JWTAuth()).Use(middleware.CasbinHandler()).Use(middleware.Cors())
 	{
 		systemRouter.InitApiRouter(PrivateGroup)
 		systemRouter.InitJwtRouter(PrivateGroup)

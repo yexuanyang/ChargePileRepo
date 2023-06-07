@@ -29,7 +29,7 @@ var orderService = service.ServiceGroupApp.UserServiceGroup.OrderService
 // @Param data body user.Order true "创建Order"
 // @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
 // @Router /order/createOrder [post]
-
+// /client/index/order [post]
 func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 	var order system.Order
 	err := c.ShouldBindJSON(&order)
