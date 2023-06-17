@@ -2,7 +2,6 @@ package user
 
 import (
 	"github.com/flipped-aurora/gin-vue-admin/server/api/v1"
-	"github.com/flipped-aurora/gin-vue-admin/server/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +10,7 @@ type OrderRouter struct {
 
 // InitOrderRouter 初始化 Order 路由信息
 func (s *OrderRouter) InitOrderRouter(Router *gin.RouterGroup) {
-	orderRouter := Router.Group("order").Use(middleware.OperationRecord())
+	orderRouter := Router.Group("order")
 	orderRouterWithoutRecord := Router.Group("order")
 	var orderApi = v1.ApiGroupApp.UserApiGroup.OrderApi
 	{
