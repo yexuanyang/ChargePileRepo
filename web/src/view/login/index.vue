@@ -53,22 +53,31 @@
             </div>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary"
-                       style="width: 30%"
-                       size="large"
-                       @click="addUser">注册</el-button>
+
             <el-button
               type="primary"
               size="large"
-              style="width: 30%; "
+              style="width: 40%; "
               @click="submitForm('user')"
             >用 户 登 录</el-button>
             <el-button
                 type="primary"
                 size="large"
-                style="width: 30%; "
+                style="width: 40%; "
                 @click="submitForm('admin')"
             >管 理 员 登 录</el-button>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary"
+                       style="width: 40%"
+                       size="large"
+                       @click="addUser">注册</el-button>
+            <el-button
+                type="primary"
+                style="width: 40%"
+                size="large"
+                @click="checkInit"
+            >前往初始化</el-button>
           </el-form-item>
         </el-form>
         <el-dialog
@@ -116,6 +125,7 @@ import {localRegister, register} from '@/api/user'
 import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/pinia/modules/user'
+import {checkDB} from "@/api/initdb";
 const addUserDialog = ref(false)
 const userInfo = ref({
   account: '',
@@ -148,32 +158,15 @@ const enterAddUserDialog = async() => {
 const rules1 = ref({
   account: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 6, message: '最低6位字符', trigger: 'blur'}
   ],
   password: [
     { required: true, message: '请输入用户密码', trigger: 'blur' },
-    { min: 6, message: '最低6位字符', trigger: 'blur' }
   ],
   name: [
     { required: true, message: '请输入用户昵称', trigger: 'blur' }
   ]
 })
 
-// 验证函数
-const checkUsername = (rule, value, callback) => {
-  if (value.length < 5) {
-    return callback(new Error('请输入正确的用户名'))
-  } else {
-    callback()
-  }
-}
-const checkPassword = (rule, value, callback) => {
-  if (value.length < 6) {
-    return callback(new Error('请输入正确的密码'))
-  } else {
-    callback()
-  }
-}
 
 // 登录相关操作
 const logInform = ref(null)
@@ -181,11 +174,6 @@ const picPath = ref('')
 const logInformData = reactive({
   account: 'admin',
   password: '111111',
-})
-
-const rules = reactive({
-  account: [{ validator: checkUsername, trigger: 'blur' }],
-  password: [{ validator: checkPassword, trigger: 'blur' }],
 })
 
 const userStore = useUserStore()
@@ -209,6 +197,22 @@ const submitForm = (type) => {
 
 const addUser = () => {
   addUserDialog.value = true
+}
+
+const checkInit = async() => {
+  const res = await checkDB()
+  if (res.code === 0) {
+    if (res.data?.needInit) {
+      userStore.NeedInit()
+      router.push({ name: 'Init' })
+    } else {
+      ElMessage({
+        type: 'Info',
+        message: '已配置数据库信息，无法初始化',
+        showClose: false,
+      })
+    }
+  }
 }
 
 </script>

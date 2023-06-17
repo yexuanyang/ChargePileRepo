@@ -63,6 +63,9 @@ func (orderApi *OrderApi) CreateOrder(c *gin.Context) {
 		return
 	}
 	order.Kwh = 0
+	if len(ChargeStations[order.StationId-1].Waiting.Cars) >= WaitingAreaSize {
+		response.FailWithMessage("等待区已满，请稍后再试", c)
+	}
 	if err := orderService.CreateOrder(&order); err != nil {
 		global.GVA_LOG.Error("创建失败!", zap.Error(err))
 		response.FailWithMessage("创建失败", c)
