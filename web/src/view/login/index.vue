@@ -13,7 +13,6 @@
         <el-form
           ref="logInform"
           :model="logInformData"
-          :rules="rules"
           :validate-on-rule-change="false"
           @keyup.enter="submitForm"
         >
