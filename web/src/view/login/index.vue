@@ -13,7 +13,6 @@
         <el-form
           ref="logInform"
           :model="logInformData"
-          :rules="rules"
           :validate-on-rule-change="false"
           @keyup.enter="submitForm"
         >
@@ -148,11 +147,9 @@ const enterAddUserDialog = async() => {
 const rules1 = ref({
   account: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 6, message: '最低6位字符', trigger: 'blur'}
   ],
   password: [
     { required: true, message: '请输入用户密码', trigger: 'blur' },
-    { min: 6, message: '最低6位字符', trigger: 'blur' }
   ],
   name: [
     { required: true, message: '请输入用户昵称', trigger: 'blur' }
@@ -181,11 +178,6 @@ const picPath = ref('')
 const logInformData = reactive({
   account: 'admin',
   password: '111111',
-})
-
-const rules = reactive({
-  account: [{ validator: checkUsername, trigger: 'blur' }],
-  password: [{ validator: checkPassword, trigger: 'blur' }],
 })
 
 const userStore = useUserStore()

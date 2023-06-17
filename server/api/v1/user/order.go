@@ -369,5 +369,4 @@ func (orderApi *OrderApi) GetUnFinishedOrderNumber(c *gin.Context) {
 		total += total2
 	}
 	response.OkWithData(total, c)
-
 }

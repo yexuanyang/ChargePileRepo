@@ -3,9 +3,9 @@
     <div class="gva-search-box">
       <el-form :inline="true" :model="searchInfo" class="demo-form-inline" @keyup.enter="onSubmit">
         <el-form-item label="创建时间">
-          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始时间"></el-date-picker>
+          <el-date-picker v-model="searchInfo.startCreatedAt" type="datetime" placeholder="开始时间" />
           —
-          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间"></el-date-picker>
+          <el-date-picker v-model="searchInfo.endCreatedAt" type="datetime" placeholder="结束时间" />
         </el-form-item>
         <el-form-item label="充电的车牌号">
           <el-input v-model="searchInfo.carId" placeholder="搜索条件" />
@@ -30,13 +30,23 @@
             <el-button type="primary" @click="onDelete">确定</el-button>
           </div>
           <template #reference>
-            <el-button icon="delete" style="margin-left: 10px;" :disabled="!multipleSelection.length"
-              @click="deleteVisible = true">删除</el-button>
+            <el-button
+              icon="delete"
+              style="margin-left: 10px;"
+              :disabled="!multipleSelection.length"
+              @click="deleteVisible = true"
+            >删除</el-button>
           </template>
         </el-popover>
       </div>
-      <el-table ref="multipleTable" style="width: 100%" tooltip-effect="dark" :data="tableData" row-key="ID"
-        @selection-change="handleSelectionChange">
+      <el-table
+        ref="multipleTable"
+        style="width: 100%"
+        tooltip-effect="dark"
+        :data="tableData"
+        row-key="ID"
+        @selection-change="handleSelectionChange"
+      >
         <el-table-column type="selection" width="55" />
         <el-table-column align="left" label="日期" width="180" fixed>
           <template #default="scope">{{ formatDate(scope.row.CreatedAt) }}</template>
@@ -58,22 +68,34 @@
           <template #default="scope">{{ formatDate(scope.row.stopAt) }}</template>
         </el-table-column>
         <el-table-column align="left" label="总花费" prop="totalCost" width="120" fixed="right" />
+          <el-table-column align="left" label="状态" prop="state" width="120" fixed="right" />
         <el-table-column align="left" label="按钮组" width="200px" fixed="right">
           <template #default="scope">
-            <el-button type="primary" link icon="edit" class="table-button"
-              @click="updateOrderFunc(scope.row)">变更</el-button>
+            <el-button
+              type="primary"
+              link
+              icon="edit"
+              class="table-button"
+              @click="updateOrderFunc(scope.row)"
+            >变更</el-button>
             <el-button type="primary" link icon="delete" @click="deleteRow(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
       <div class="gva-pagination">
-        <el-pagination layout="total, sizes, prev, pager, next, jumper" :current-page="page" :page-size="pageSize"
-          :page-sizes="[10, 30, 50, 100]" :total="total" @current-change="handleCurrentChange"
-          @size-change="handleSizeChange" />
+        <el-pagination
+          layout="total, sizes, prev, pager, next, jumper"
+          :current-page="page"
+          :page-size="pageSize"
+          :page-sizes="[10, 30, 50, 100]"
+          :total="total"
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
+        />
       </div>
     </div>
     <el-dialog v-model="dialogFormVisible" :before-close="closeDialog" title="弹窗操作">
-      <el-form :model="formData" label-position="right" ref="elFormRef" :rules="rule" label-width="200px">
+      <el-form ref="elFormRef" :model="formData" label-position="right" :rules="rule" label-width="200px">
         <el-form-item label="订单所属的用户Id:" prop="user_id">
           <el-input v-model.number="formData.user_id" :clearable="true" placeholder="请输入" />
         </el-form-item>
@@ -101,8 +123,13 @@
           <el-input-number v-model="formData.serviceCost" style="width:100%" :precision="2" :clearable="true" />
         </el-form-item>
         <el-form-item label="开始充电时间:" prop="startedAt">
-          <el-date-picker v-model="formData.startedAt" type="datetime" style="width:100%" placeholder="选择日期"
-            :clearable="true" />
+          <el-date-picker
+            v-model="formData.startedAt"
+            type="datetime"
+            style="width:100%"
+            placeholder="选择日期"
+            :clearable="true"
+          />
         </el-form-item>
         <el-form-item label="结束充电时间:" prop="stopAt">
           <el-date-picker v-model="formData.stopAt" type="datetime" style="width:100%" placeholder="选择日期" :clearable="true" />
@@ -153,7 +180,7 @@ const formData = ref({
   serviceCost: 0,
   startedAt: new Date(),
   stopAt: new Date(),
-  totalCost: 0,
+  totalCost: 0
 })
 
 // 验证规则
@@ -191,7 +218,6 @@ const rule = reactive({
 })
 
 const elFormRef = ref()
-
 
 // =========== 表格控制部分 ===========
 const page = ref(1)
@@ -241,12 +267,11 @@ getTableData()
 // ============== 表格控制部分结束 ===============
 
 // 获取需要的字典 可能为空 按需保留
-const setOptions = async () => {
+const setOptions = async() => {
 }
 
 // 获取需要的字典 可能为空 按需保留
 setOptions()
-
 
 // 多选数据
 const multipleSelection = ref([])
@@ -266,12 +291,11 @@ const deleteRow = (row) => {
   })
 }
 
-
 // 批量删除控制标记
 const deleteVisible = ref(false)
 
 // 多选删除
-const onDelete = async () => {
+const onDelete = async() => {
   const ids = []
   if (multipleSelection.value.length === 0) {
     ElMessage({
@@ -302,7 +326,7 @@ const onDelete = async () => {
 const type = ref('')
 
 // 更新行
-const updateOrderFunc = async (row) => {
+const updateOrderFunc = async(row) => {
   const res = await findOrder({ ID: row.ID })
   type.value = 'update'
   if (res.code === 0) {
@@ -311,9 +335,8 @@ const updateOrderFunc = async (row) => {
   }
 }
 
-
 // 删除行
-const deleteOrderFunc = async (row) => {
+const deleteOrderFunc = async(row) => {
   const res = await deleteOrder2({ ID: row.ID })
   if (res.code === 0) {
     ElMessage({
@@ -353,8 +376,8 @@ const closeDialog = () => {
   }
 }
 // 弹窗确定
-const enterDialog = async () => {
-  elFormRef.value?.validate(async (valid) => {
+const enterDialog = async() => {
+  elFormRef.value?.validate(async(valid) => {
     if (!valid) return
     let res
     switch (type.value) {

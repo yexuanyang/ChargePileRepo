@@ -234,7 +234,7 @@ const searchInfo = ref('CURRENT')
 
 // 重置
 const onReset = () => {
-  searchInfo.value = {}
+  searchInfo.value = 'CURRENT'
   getTableData()
 }
 

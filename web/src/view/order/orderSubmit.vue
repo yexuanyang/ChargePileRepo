@@ -138,7 +138,7 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import MapContainer from '@/view/chargePile/MapContainer.vue'
-import { getOrderListByUserId2 } from '@/api/order'
+import {createOrder2, getOrderListByUserId2} from '@/api/order'
 import { ActiveStore } from '@/pinia/modules/active'
 import { ChargeStore } from '@/pinia/modules/chargeRequest'
 import bubble from '@/view/order/bubble.vue'
@@ -223,6 +223,8 @@ async function enterOrder() {
         } else {
           tmpForm.apply_time = tmpForm.apply_kwh / 30
         }
+        const res = await createOrder2(requestForm.value)
+        console.log(res)
         chargeStore.setChargeInfo(tmpForm)
         return
   }

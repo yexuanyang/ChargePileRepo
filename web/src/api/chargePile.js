@@ -105,7 +105,7 @@ export const UpdateChargePileByIds = (data) => {
 }
 
 export const UpdateChargePileByIds2 = (data) => {
-  return service({
+  return bonusService({
     url: '/admin/index/manage',
     method: 'post',
     data
